@@ -2,12 +2,81 @@
 
 import { useState } from 'react'
 
+type AnswerValue = 'pass' | 'neutral' | 'fail'
+type Question = {
+  id: string
+  text: string
+  options: { label: string; value: AnswerValue }[]
+}
+
+const AGENT_QUESTIONS: Question[] = [
+  {
+    id: 'frequency',
+    text: 'How often do you currently use AI tools like ChatGPT, Claude, or Gemini?',
+    options: [
+      { label: "I'm just getting started — haven't used them much", value: 'fail' },
+      { label: 'A few times a week, still exploring', value: 'neutral' },
+      { label: 'Every day — already part of how I work', value: 'pass' },
+    ],
+  },
+  {
+    id: 'real_work',
+    text: 'Have you used AI to complete actual work tasks — not just experiment with it?',
+    options: [
+      { label: 'No, mostly just asking questions and exploring', value: 'fail' },
+      { label: 'A few times — I can see the potential', value: 'neutral' },
+      { label: "Yes — it's already saved me real time on real work", value: 'pass' },
+    ],
+  },
+  {
+    id: 'goal',
+    text: 'What do you want from the Agent tier?',
+    options: [
+      { label: "I'm still figuring out what AI can actually do", value: 'fail' },
+      { label: 'Build reusable prompt systems and workflows', value: 'pass' },
+      { label: 'Connect AI to my tools and automate my work', value: 'pass' },
+    ],
+  },
+]
+
+const OPERATOR_QUESTIONS: Question[] = [
+  {
+    id: 'systematic',
+    text: 'Are you using AI in a systematic, repeatable way — not just when you think of it?',
+    options: [
+      { label: 'Not yet — still case-by-case when I need it', value: 'fail' },
+      { label: "Sometimes — working toward consistency", value: 'neutral' },
+      { label: 'Yes — I have workflows and systems I run regularly', value: 'pass' },
+    ],
+  },
+  {
+    id: 'built_for_others',
+    text: 'Have you built something with AI that other people use or depend on?',
+    options: [
+      { label: "No, still personal use only", value: 'fail' },
+      { label: "Working on it — I have a clear project in mind", value: 'neutral' },
+      { label: 'Yes — a team or client depends on something I built', value: 'pass' },
+    ],
+  },
+  {
+    id: 'goal',
+    text: "What's your goal at the Operator level?",
+    options: [
+      { label: 'Learn more about what AI can do', value: 'fail' },
+      { label: 'Run AI systems across a team or business', value: 'pass' },
+      { label: 'Build and operate autonomous AI at scale', value: 'pass' },
+    ],
+  },
+]
+
 export default function Home() {
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [message, setMessage] = useState('')
   const [checkoutError, setCheckoutError] = useState('')
   const [gate, setGate] = useState<'agent' | 'operator' | null>(null)
+  const [quizAnswers, setQuizAnswers] = useState<Record<string, number>>({})
+  const [quizResult, setQuizResult] = useState<'not-ready' | null>(null)
 
   async function startCheckout(product: string) {
     setCheckoutError('')
@@ -21,7 +90,7 @@ export default function Home() {
       if (data.url) {
         window.location.href = data.url
       } else {
-        setCheckoutError('Something went wrong. Try again or contact us.')
+        setCheckoutError(data.error || 'Something went wrong. Try again or contact us.')
       }
     } catch {
       setCheckoutError('Something went wrong. Try again or contact us.')
@@ -33,6 +102,34 @@ export default function Home() {
     if (product === 'operator') { setGate('operator'); return }
     startCheckout(product)
   }
+
+  function closeGate() {
+    setGate(null)
+    setQuizAnswers({})
+    setQuizResult(null)
+  }
+
+  function submitQuiz() {
+    if (!gate) return
+    const questions = gate === 'agent' ? AGENT_QUESTIONS : OPERATOR_QUESTIONS
+    if (!questions.every(q => quizAnswers[q.id] !== undefined)) return
+    const score = questions.reduce((sum, q) => {
+      const opt = q.options[quizAnswers[q.id]]
+      if (opt.value === 'pass') return sum + 1
+      if (opt.value === 'neutral') return sum + 0.5
+      return sum
+    }, 0)
+    if (score >= 2) {
+      const product = gate
+      closeGate()
+      startCheckout(product)
+    } else {
+      setQuizResult('not-ready')
+    }
+  }
+
+  const gateQuestions = gate ? (gate === 'agent' ? AGENT_QUESTIONS : OPERATOR_QUESTIONS) : []
+  const allAnswered = gateQuestions.every(q => quizAnswers[q.id] !== undefined)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -325,44 +422,104 @@ export default function Home() {
         )}
       </section>
 
-      {/* Gate modal */}
+      {/* Readiness quiz modal */}
       {gate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-6" style={{ background: 'rgba(0,0,0,0.85)' }}>
-          <div className="rounded-2xl p-8 border max-w-md w-full" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-            <p className="text-xs tracking-widest uppercase mb-2" style={{ color: 'var(--accent)' }}>
-              {gate === 'agent' ? '02 · Agent' : '03 · Operator'}
-            </p>
-            <h2 className="text-2xl font-bold mb-3">
-              {gate === 'agent' ? 'Before you join Agent' : 'Before you join Operator'}
-            </h2>
-            <p className="text-sm leading-relaxed mb-6" style={{ color: 'var(--muted)' }}>
-              {gate === 'agent'
-                ? 'Agent is for people who are already using AI daily. It requires completing Recruit first. If you haven\'t done Recruit, start there — Agent will make more sense after.'
-                : 'Operator is for people who have completed both Recruit and Agent. If you\'re not there yet, the Full Track gets you in at a better price and unlocks each tier as you complete it.'}
-            </p>
-            <div className="space-y-3">
-              <button
-                onClick={() => { setGate(null); startCheckout(gate) }}
-                className="w-full py-3 rounded-lg text-sm font-semibold hover:opacity-80 cursor-pointer transition-opacity"
-                style={{ background: 'var(--accent)', color: '#000' }}
-              >
-                I&apos;ve completed the prerequisite — continue
-              </button>
-              <button
-                onClick={() => { setGate(null); startCheckout('bundle') }}
-                className="w-full py-3 rounded-lg text-sm font-semibold border hover:opacity-80 cursor-pointer transition-opacity"
-                style={{ background: 'transparent', color: 'var(--accent)', borderColor: 'var(--accent)' }}
-              >
-                Get the Full Track instead ($597)
-              </button>
-              <button
-                onClick={() => setGate(null)}
-                className="w-full py-2 text-sm cursor-pointer hover:opacity-80 transition-opacity"
-                style={{ color: 'var(--muted)' }}
-              >
-                Cancel
-              </button>
-            </div>
+          <div
+            className="rounded-2xl p-8 border max-w-lg w-full"
+            style={{ background: 'var(--surface)', borderColor: 'var(--border)', maxHeight: '90vh', overflowY: 'auto' }}
+          >
+            {quizResult === 'not-ready' ? (
+              <div>
+                <p className="text-xs tracking-widest uppercase mb-2" style={{ color: '#ef4444' }}>
+                  Not quite yet
+                </p>
+                <h2 className="text-2xl font-bold mb-3">
+                  {gate === 'agent' ? 'Start with Recruit first.' : 'Build before you operate.'}
+                </h2>
+                <p className="text-sm leading-relaxed mb-6" style={{ color: 'var(--muted)' }}>
+                  {gate === 'agent'
+                    ? "Agent is for people already in the daily AI habit. Recruit gets you there in 6 conversations — then Agent will click immediately."
+                    : "Operator is for people running AI at scale. The Full Track walks you from zero to Operator, unlocking each level as you complete the one before it."}
+                </p>
+                <div className="space-y-3">
+                  <button
+                    onClick={() => { closeGate(); startCheckout(gate === 'agent' ? 'recruit' : 'bundle') }}
+                    className="w-full py-3 rounded-lg text-sm font-semibold hover:opacity-80 cursor-pointer transition-opacity"
+                    style={{ background: 'var(--accent)', color: '#000' }}
+                  >
+                    {gate === 'agent' ? 'Get Recruit — $97' : 'Get the Full Track — $597'}
+                  </button>
+                  <button
+                    onClick={closeGate}
+                    className="w-full py-2 text-sm cursor-pointer hover:opacity-80 transition-opacity"
+                    style={{ color: 'var(--muted)' }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <p className="text-xs tracking-widest uppercase mb-2" style={{ color: 'var(--accent)' }}>
+                  {gate === 'agent' ? '02 · Agent' : '03 · Operator'} · Readiness check
+                </p>
+                <h2 className="text-xl font-bold mb-1">
+                  {gate === 'agent' ? 'Are you ready for Agent?' : 'Are you ready for Operator?'}
+                </h2>
+                <p className="text-sm mb-6" style={{ color: 'var(--muted)' }}>
+                  Answer honestly — this tier works best when you&apos;re in the right spot.
+                </p>
+
+                <div className="space-y-6 mb-8">
+                  {gateQuestions.map((q, qi) => (
+                    <div key={q.id}>
+                      <p className="text-sm font-medium mb-3">
+                        <span style={{ color: 'var(--accent)' }}>{qi + 1}.&nbsp;</span>
+                        {q.text}
+                      </p>
+                      <div className="space-y-2">
+                        {q.options.map((opt, oi) => {
+                          const selected = quizAnswers[q.id] === oi
+                          return (
+                            <button
+                              key={oi}
+                              onClick={() => setQuizAnswers(prev => ({ ...prev, [q.id]: oi }))}
+                              className="w-full text-left px-4 py-3 rounded-lg text-sm border transition-all cursor-pointer"
+                              style={{
+                                background: selected ? 'rgba(201,151,58,0.1)' : 'transparent',
+                                borderColor: selected ? 'var(--accent)' : 'var(--border)',
+                                color: selected ? 'var(--foreground)' : 'var(--muted)',
+                              }}
+                            >
+                              {opt.label}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-3">
+                  <button
+                    onClick={submitQuiz}
+                    disabled={!allAnswered}
+                    className="w-full py-3 rounded-lg text-sm font-semibold hover:opacity-80 disabled:opacity-40 cursor-pointer transition-opacity"
+                    style={{ background: 'var(--accent)', color: '#000' }}
+                  >
+                    Continue
+                  </button>
+                  <button
+                    onClick={closeGate}
+                    className="w-full py-2 text-sm cursor-pointer hover:opacity-80 transition-opacity"
+                    style={{ color: 'var(--muted)' }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

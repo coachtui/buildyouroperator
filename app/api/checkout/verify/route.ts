@@ -4,9 +4,16 @@ import { SignJWT } from 'jose'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
-async function generateFullAccessToken(email: string): Promise<string> {
+type Tier = 'recruit' | 'agent' | 'operator' | 'bundle'
+
+function productToTier(product: string | undefined | null): Tier {
+  if (product === 'agent' || product === 'operator' || product === 'bundle') return product
+  return 'recruit'
+}
+
+async function generateFullAccessToken(email: string, tier: Tier): Promise<string> {
   const secret = new TextEncoder().encode(process.env.ACCESS_TOKEN_SECRET)
-  return new SignJWT({ email, tier: 'recruit', access: 'full' })
+  return new SignJWT({ email, tier, access: 'full' })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .sign(secret) // no expiry — paid access is permanent
@@ -31,7 +38,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No email on session.' }, { status: 400 })
     }
 
-    const token = await generateFullAccessToken(email)
+    const tier = productToTier(session.metadata?.product)
+    const token = await generateFullAccessToken(email, tier)
     return NextResponse.json({ token, email })
   } catch (err) {
     console.error('Stripe verify error:', err)

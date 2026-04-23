@@ -1,18 +1,33 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { NextRequest } from 'next/server'
-import { jwtVerify } from 'jose'
+import { jwtVerify, JWTPayload } from 'jose'
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-async function verifyToken(token: string | undefined): Promise<boolean> {
-  if (!token) return false
+async function verifyToken(token: string | undefined): Promise<JWTPayload | null> {
+  if (!token) return null
   try {
     const secret = new TextEncoder().encode(process.env.ACCESS_TOKEN_SECRET)
-    await jwtVerify(token, secret)
-    return true
+    const { payload } = await jwtVerify(token, secret)
+    return payload
   } catch {
-    return false
+    return null
   }
+}
+
+const RECRUIT_LESSONS = new Set(['1', '2', '3', '4', '5', '6'])
+
+function isSystemMessage(content: string) {
+  return content === 'Begin the lesson.' || content.startsWith('The student is returning.')
+}
+
+function countRealUserMessages(messages: { role: string; content: string }[]) {
+  return messages.filter(m => m.role === 'user' && !isSystemMessage(m.content)).length
+}
+
+function prerequisiteLimitMessage(tier: string) {
+  const tierLabel = tier === 'bundle' ? 'Operator' : tier.charAt(0).toUpperCase() + tier.slice(1)
+  return `Hold on. You came in at ${tierLabel} level — which means you're serious. But that also means this foundation matters more for you, not less.\n\nI cap higher-tier students at 3 questions in Recruit lessons. Not to slow you down — to make sure you don't skip the thing that makes everything else click.\n\nFinish Recruit from Lesson 1. When you're done, ${tierLabel} will make ten times more sense. That's not a pitch. It's just the truth.`
 }
 
 const LESSON_PROMPTS: Record<string, string> = {
@@ -257,7 +272,8 @@ When all goals are met:
 export async function POST(req: NextRequest) {
   const { messages, lesson, token } = await req.json()
 
-  if (!await verifyToken(token)) {
+  const payload = await verifyToken(token)
+  if (!payload) {
     return new Response('Unauthorized', { status: 401 })
   }
 
@@ -265,6 +281,24 @@ export async function POST(req: NextRequest) {
 
   if (!systemPrompt) {
     return new Response('Unknown lesson', { status: 400 })
+  }
+
+  const tier = payload.tier as string | undefined
+  if (tier && tier !== 'recruit' && RECRUIT_LESSONS.has(lesson ?? '1')) {
+    const userCount = countRealUserMessages(messages)
+    if (userCount >= 3) {
+      const capMsg = prerequisiteLimitMessage(tier)
+      const encoder = new TextEncoder()
+      const readable = new ReadableStream({
+        start(controller) {
+          controller.enqueue(encoder.encode(capMsg))
+          controller.close()
+        },
+      })
+      return new Response(readable, {
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+      })
+    }
   }
 
   const stream = await client.messages.stream({

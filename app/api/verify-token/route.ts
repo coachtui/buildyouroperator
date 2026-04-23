@@ -10,8 +10,8 @@ export async function POST(req: NextRequest) {
 
   try {
     const secret = new TextEncoder().encode(process.env.ACCESS_TOKEN_SECRET)
-    await jwtVerify(token, secret)
-    return NextResponse.json({ ok: true })
+    const { payload } = await jwtVerify(token, secret)
+    return NextResponse.json({ ok: true, tier: payload.tier ?? 'recruit' })
   } catch {
     return NextResponse.json({ error: 'Invalid or expired token.' }, { status: 401 })
   }
