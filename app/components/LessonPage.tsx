@@ -204,7 +204,7 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
                 Note: Gojo&apos;s memory resets between sessions. He&apos;ll catch up on where you left off, but won&apos;t remember details from earlier conversations.
               </p>
             </div>
-            <button onClick={startLesson} className="px-8 py-3 rounded-lg text-sm font-semibold" style={{ background: 'var(--accent)', color: '#000' }}>
+            <button onClick={startLesson} className="px-8 py-3 rounded-lg text-sm font-semibold hover:opacity-80 cursor-pointer transition-opacity" style={{ background: 'var(--accent)', color: '#000' }}>
               Start Lesson {lesson.number}
             </button>
           </div>
@@ -262,7 +262,7 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
               className="flex-1 resize-none rounded-xl px-4 py-3 text-sm outline-none border disabled:opacity-50"
               style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)', maxHeight: '120px' }}
             />
-            <button onClick={handleSend} disabled={loading || !input.trim()} className="px-5 py-3 rounded-xl text-sm font-semibold disabled:opacity-40 shrink-0" style={{ background: 'var(--accent)', color: '#000' }}>
+            <button onClick={handleSend} disabled={loading || !input.trim()} className="px-5 py-3 rounded-xl text-sm font-semibold disabled:opacity-40 hover:opacity-80 cursor-pointer transition-opacity shrink-0" style={{ background: 'var(--accent)', color: '#000' }}>
               Send
             </button>
           </div>

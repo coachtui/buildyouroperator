@@ -98,7 +98,7 @@ export default function Home() {
               <button
                 type="submit"
                 disabled={status === 'loading'}
-                className="px-6 py-3 rounded-lg text-sm font-semibold transition-opacity disabled:opacity-60"
+                className="px-6 py-3 rounded-lg text-sm font-semibold transition-opacity disabled:opacity-60 hover:opacity-80 cursor-pointer"
                 style={{ background: 'var(--accent)', color: '#000' }}
               >
                 {status === 'loading' ? 'Joining...' : 'Join the waitlist'}
@@ -260,7 +260,7 @@ export default function Home() {
               </div>
               <button
                 onClick={() => startCheckout(p.product)}
-                className="w-full py-2.5 rounded-lg text-sm font-semibold border transition-opacity"
+                className="w-full py-2.5 rounded-lg text-sm font-semibold border transition-opacity hover:opacity-80 cursor-pointer"
                 style={p.highlight
                   ? { background: 'var(--accent)', color: '#000', borderColor: 'var(--accent)' }
                   : { background: 'transparent', color: 'var(--accent)', borderColor: 'var(--accent)' }}
@@ -295,7 +295,7 @@ export default function Home() {
             <button
               type="submit"
               disabled={status === 'loading'}
-              className="px-6 py-3 rounded-lg text-sm font-semibold transition-opacity disabled:opacity-60 border"
+              className="px-6 py-3 rounded-lg text-sm font-semibold transition-opacity disabled:opacity-60 hover:opacity-80 cursor-pointer border"
               style={{ borderColor: 'var(--accent)', color: 'var(--accent)', background: 'transparent' }}
             >
               {status === 'loading' ? 'Joining...' : 'Get Lesson 1 free'}
