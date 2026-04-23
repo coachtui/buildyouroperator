@@ -26,8 +26,9 @@ export default async function AdminPage({
 
   if (!process.env.ADMIN_KEY || key !== process.env.ADMIN_KEY) {
     return (
-      <div style={{ background: '#080808', color: '#f0f0f0', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'monospace' }}>
+      <div style={{ background: '#080808', color: '#f0f0f0', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'monospace', flexDirection: 'column', gap: 8 }}>
         <p style={{ color: '#555' }}>403</p>
+        <p style={{ color: '#333', fontSize: 12 }}>env set: {process.env.ADMIN_KEY ? 'yes' : 'no'} · env len: {process.env.ADMIN_KEY?.length ?? 0} · key len: {key?.length ?? 0}</p>
       </div>
     )
   }
