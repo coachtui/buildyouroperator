@@ -46,6 +46,7 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
   const [loading, setLoading] = useState(false)
   const [started, setStarted] = useState(false)
   const [authorized, setAuthorized] = useState<boolean | null>(null)
+  const [maxLesson, setMaxLesson] = useState<number>(6)
   const [resuming, setResuming] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -58,6 +59,9 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
       body: JSON.stringify({ token }),
     }).then(async r => {
       if (!r.ok) { setAuthorized(false); return }
+      const authData = await r.json()
+      setMaxLesson(authData.maxLesson ?? 6)
+      if (lesson.number > (authData.maxLesson ?? 6)) { setAuthorized(false); return }
       setAuthorized(true)
 
       // Try Supabase first, fall back to localStorage
@@ -173,16 +177,19 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
   }
 
   if (!authorized) {
+    const isPaidGate = lesson.number > maxLesson
     return (
       <div className="min-h-screen flex items-center justify-center px-6" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
         <div className="max-w-md text-center">
           <p className="text-xs tracking-widest uppercase mb-4" style={{ color: 'var(--accent)' }}>Operator</p>
-          <h1 className="text-2xl font-bold mb-4">Access required</h1>
+          <h1 className="text-2xl font-bold mb-4">{isPaidGate ? 'Unlock the full course' : 'Access required'}</h1>
           <p className="mb-8 leading-relaxed" style={{ color: 'var(--muted)' }}>
-            This lesson requires a valid access link. Join the waitlist to get Lesson 1 free.
+            {isPaidGate
+              ? 'Lessons 2–6 are part of the Recruit tier. Join as a founding member to continue.'
+              : 'This lesson requires a valid access link. Join the waitlist to get Lesson 1 free.'}
           </p>
           <button onClick={() => router.push('/')} className="px-6 py-3 rounded-lg text-sm font-semibold" style={{ background: 'var(--accent)', color: '#000' }}>
-            Back to home
+            {isPaidGate ? 'See pricing →' : 'Back to home'}
           </button>
         </div>
       </div>

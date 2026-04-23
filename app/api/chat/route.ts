@@ -278,10 +278,17 @@ export async function POST(req: NextRequest) {
     return new Response('Unauthorized', { status: 401 })
   }
 
+  const lessonNumber = parseInt(lesson ?? '1')
   const systemPrompt = LESSON_PROMPTS[lesson ?? '1']
 
   if (!systemPrompt) {
     return new Response('Unknown lesson', { status: 400 })
+  }
+
+  // Waitlist tokens (no access:'full') are limited to lesson 1
+  const maxLesson = payload.access === 'full' ? 6 : 1
+  if (lessonNumber > maxLesson) {
+    return new Response('Upgrade required', { status: 403 })
   }
 
   const tier = payload.tier as string | undefined
@@ -311,7 +318,6 @@ export async function POST(req: NextRequest) {
 
   const encoder = new TextEncoder()
   const email = payload.email as string
-  const lessonNumber = parseInt(lesson ?? '1')
 
   const readable = new ReadableStream({
     async start(controller) {

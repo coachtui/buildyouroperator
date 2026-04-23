@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { SignJWT } from 'jose'
+import { supabase } from '@/app/lib/supabase'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
@@ -40,6 +41,14 @@ export async function POST(req: NextRequest) {
 
     const tier = productToTier(session.metadata?.product)
     const token = await generateFullAccessToken(email, tier)
+
+    await supabase
+      .from('users')
+      .upsert(
+        { email: email.toLowerCase(), tier, token, current_lesson: 1 },
+        { onConflict: 'email', ignoreDuplicates: false }
+      )
+
     return NextResponse.json({ token, email })
   } catch (err) {
     console.error('Stripe verify error:', err)
