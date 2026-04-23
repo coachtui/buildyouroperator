@@ -72,6 +72,9 @@ export default async function AdminPage({
     msgCounts[s.user_id] = (msgCounts[s.user_id] ?? 0) + real
   }
 
+  const usersWithSessions = new Set(sessionList.map(s => s.user_id))
+  const neverStarted = userList.filter(u => !usersWithSessions.has(u.id))
+
   const cell: React.CSSProperties = { padding: '10px 16px', borderBottom: '1px solid #1a1a1a', fontSize: 13, whiteSpace: 'nowrap' }
   const dim: React.CSSProperties = { color: '#555' }
   const accent: React.CSSProperties = { color: '#c9973a' }
@@ -84,6 +87,7 @@ export default async function AdminPage({
       <div style={{ display: 'flex', gap: 24, marginBottom: 40, flexWrap: 'wrap' }}>
         {[
           { label: 'Total users', value: total },
+          { label: 'Never started', value: neverStarted.length },
           { label: 'Spots left', value: Math.max(0, 50 - total) },
           { label: 'Recruit', value: byTier['recruit'] ?? 0 },
           { label: 'Agent', value: byTier['agent'] ?? 0 },
@@ -125,6 +129,34 @@ export default async function AdminPage({
           </tbody>
         </table>
       </div>
+
+      {/* Never started */}
+      {neverStarted.length > 0 && (
+        <>
+          <h2 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, color: '#888' }}>Never Started</h2>
+          <p style={{ ...dim, fontSize: 12, marginBottom: 16 }}>Signed up but opened zero lessons — re-engagement targets.</p>
+          <div style={{ background: '#0f0f0f', border: '1px solid #2a1a0a', borderRadius: 8, marginBottom: 40, overflow: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 400 }}>
+              <thead>
+                <tr style={{ background: '#111' }}>
+                  {['Email', 'Tier', 'Joined'].map(h => (
+                    <th key={h} style={{ ...cell, ...dim, fontWeight: 500, textAlign: 'left' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {neverStarted.map(u => (
+                  <tr key={u.id}>
+                    <td style={cell}>{u.email}</td>
+                    <td style={{ ...cell, ...accent }}>{u.tier}</td>
+                    <td style={{ ...cell, ...dim }}>{new Date(u.created_at).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
 
       {/* User table */}
       <h2 style={{ fontSize: 14, fontWeight: 600, marginBottom: 16, color: '#888' }}>Users</h2>
