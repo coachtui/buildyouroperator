@@ -3,7 +3,7 @@ import { Resend } from 'resend'
 import { SignJWT } from 'jose'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
-const FROM = 'Gojo at Operator <gojo@buildyouroperator.com>'
+const FROM = 'Gojo at Operator <gojo@mail.buildyouroperator.com>'
 const NOTIFY = process.env.NOTIFY_EMAIL ?? 'gojo@buildyouroperator.com'
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://buildyouroperator.com'
 
