@@ -289,12 +289,18 @@ export default function Home() {
       {/* Pricing */}
       <section className="max-w-5xl mx-auto px-6 py-20">
         <h2 className="text-3xl font-bold mb-3">Three levels. One destination.</h2>
-        <p className="mb-4" style={{ color: 'var(--muted)' }}>
+        <p className="mb-8" style={{ color: 'var(--muted)' }}>
           You don&apos;t complete Operator. You become one.
         </p>
-        <div className="inline-flex items-start gap-2 mb-12 px-4 py-3 rounded-lg border text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface)', color: 'var(--muted)' }}>
-          <span style={{ color: 'var(--accent)' }}>—</span>
-          <span>Each level requires completing the one before it. You can&apos;t skip ahead.</span>
+
+        <div className="rounded-xl p-6 border mb-12 max-w-2xl" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+          <p className="text-xs tracking-widest uppercase mb-3" style={{ color: 'var(--accent)' }}>How this works</p>
+          <p className="text-sm leading-relaxed mb-3" style={{ color: 'var(--foreground)' }}>
+            This curriculum is built from the inside out. Recruit launches first. Agent is designed from what Recruit graduates tell us they needed. Operator from what Agent graduates are ready for.
+          </p>
+          <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
+            No guessing. No theory borrowed from other courses. Each tier is shaped by the people who just finished the one before it — which means founding cohort members aren&apos;t just taking a course. They&apos;re building it.
+          </p>
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
@@ -311,45 +317,49 @@ export default function Home() {
               badge: 'Open now',
               badgeStyle: { background: 'var(--accent)', color: '#000' } as React.CSSProperties,
               highlight: false,
+              comingSoon: false,
             },
             {
               product: 'agent',
               label: '02',
               name: 'Agent',
               tagline: 'Build It',
-              desc: 'You\'re using AI daily. Now you build with it. Workflows, prompt systems, and repeatable processes you can hand to anyone.',
-              features: ['Requires Recruit completion', 'Workflow + prompt systems', 'Readiness assessment', 'Monthly cohort start'],
+              desc: 'Workflows, prompt systems, and repeatable processes you can hand to anyone. Built from what Recruit graduates tell us they needed.',
+              features: ['Requires Recruit completion', 'Designed by Recruit graduates', 'Launches after first cohort', 'Founding price locked now'],
               price: '$197',
               full: '$397',
-              badge: 'Requires Recruit',
+              badge: 'Coming soon',
               badgeStyle: { background: 'transparent', border: '1px solid var(--border)', color: 'var(--muted)' } as React.CSSProperties,
               highlight: false,
+              comingSoon: true,
             },
             {
               product: 'operator',
               label: '03',
               name: 'Operator',
               tagline: 'Run It',
-              desc: 'Running AI at scale — across a team, a business, a life. You earn this designation by doing the work before it.',
-              features: ['Requires Agent completion', 'AI at team/business scale', 'Small cohort (20 max)', 'Quarterly start'],
+              desc: 'Running AI at scale — across a team, a business, a life. Built from what Agent graduates are ready for.',
+              features: ['Requires Agent completion', 'Designed by Agent graduates', 'Small cohort (20 max)', 'Founding price locked now'],
               price: '$497',
               full: '$997',
-              badge: 'Requires Agent',
+              badge: 'Coming soon',
               badgeStyle: { background: 'transparent', border: '1px solid var(--border)', color: 'var(--muted)' } as React.CSSProperties,
               highlight: false,
+              comingSoon: true,
             },
             {
               product: 'bundle',
               label: null,
               name: 'Full Track',
               tagline: 'All Three',
-              desc: 'All three tiers in one. Start at Recruit today and unlock each level as you complete the one before it.',
-              features: ['All three tiers included', 'Save $194 vs individual', 'Start at Recruit today', 'Unlock as you complete each'],
+              desc: 'Lock in all three tiers at the founding price. Start Recruit today — Agent and Operator unlock as each tier launches.',
+              features: ['All three tiers included', 'Save $194 vs individual', 'Start Recruit immediately', 'Agent + Operator unlock as built'],
               price: '$597',
               full: '$1,591',
               badge: 'Best value',
               badgeStyle: { background: 'var(--accent)', color: '#000' } as React.CSSProperties,
               highlight: true,
+              comingSoon: false,
             },
           ].map((p) => (
             <div
@@ -380,13 +390,16 @@ export default function Home() {
                 <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>founding cohort · one time</p>
               </div>
               <button
-                onClick={() => handleCardClick(p.product)}
-                className="w-full py-2.5 rounded-lg text-sm font-semibold border transition-opacity hover:opacity-80 cursor-pointer"
-                style={p.highlight
-                  ? { background: 'var(--accent)', color: '#000', borderColor: 'var(--accent)' }
-                  : { background: 'transparent', color: 'var(--accent)', borderColor: 'var(--accent)' }}
+                onClick={() => !p.comingSoon && handleCardClick(p.product)}
+                disabled={p.comingSoon}
+                className="w-full py-2.5 rounded-lg text-sm font-semibold border transition-opacity"
+                style={p.comingSoon
+                  ? { background: 'transparent', color: 'var(--muted)', borderColor: 'var(--border)', cursor: 'default', opacity: 0.5 }
+                  : p.highlight
+                    ? { background: 'var(--accent)', color: '#000', borderColor: 'var(--accent)', cursor: 'pointer' }
+                    : { background: 'transparent', color: 'var(--accent)', borderColor: 'var(--accent)', cursor: 'pointer' }}
               >
-                {p.product === 'agent' || p.product === 'operator' ? 'Apply' : 'Get started'}
+                {p.comingSoon ? 'Coming soon' : 'Get started'}
               </button>
             </div>
           ))}
