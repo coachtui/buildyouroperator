@@ -2,11 +2,11 @@
 
 import { useState } from 'react'
 
-async function startCheckout() {
+async function startCheckout(product: string = 'recruit') {
   const res = await fetch('/api/checkout', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ token: null }),
+    body: JSON.stringify({ token: null, product }),
   })
   const { url } = await res.json()
   if (url) window.location.href = url
@@ -254,75 +254,82 @@ export default function Home() {
         <div style={{ borderTop: '1px solid var(--border)' }} />
       </div>
 
-      {/* Founding cohort CTA */}
+      {/* Pricing */}
       <section className="max-w-5xl mx-auto px-6 py-20">
-        <div className="max-w-2xl">
-          <h2 className="text-3xl font-bold mb-4">
-            Founding cohort.<br />50 spots. Then the price doubles.
-          </h2>
-          <p className="mb-6 leading-relaxed" style={{ color: 'var(--muted)' }}>
-            Founding members get Recruit at $97 — locked in for life.
-            They also get direct access during the build: what&apos;s working, what isn&apos;t,
-            and a say in what comes next. This isn&apos;t a discount. It&apos;s a different relationship.
-          </p>
-          <ul className="space-y-3 mb-10">
-            {[
-              'Lesson 1 free — talk to the AI today, no card required',
-              'Founding price locked: $97 (full price $197 at launch)',
-              'Direct channel with the build team during Recruit tier',
-              'First access to Agent and Operator tiers before public release',
-            ].map((item) => (
-              <li key={item} className="flex items-start gap-3 text-sm">
-                <span style={{ color: 'var(--accent)' }}>—</span>
-                <span style={{ color: 'var(--muted)' }}>{item}</span>
-              </li>
-            ))}
-          </ul>
+        <h2 className="text-3xl font-bold mb-3">Founding cohort pricing.</h2>
+        <p className="mb-12" style={{ color: 'var(--muted)' }}>
+          50 spots. Then prices double. This isn&apos;t a sale — it&apos;s a different relationship.
+        </p>
 
-          {status === 'success' ? (
-            <div className="rounded-xl p-6 border" style={{ background: 'rgba(201,151,58,0.1)', borderColor: 'var(--accent)' }}>
-              <p className="font-semibold" style={{ color: 'var(--accent)' }}>You&apos;re on the list. Check your inbox for Lesson 1.</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <button
-                onClick={startCheckout}
-                className="w-full sm:w-auto px-8 py-4 rounded-lg text-base font-semibold"
-                style={{ background: 'var(--accent)', color: '#000' }}
-              >
-                Join founding cohort — $97
-              </button>
-              <div className="flex items-center gap-3 max-w-lg">
-                <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
-                <span className="text-xs" style={{ color: 'var(--muted)' }}>or try Lesson 1 free first</span>
-                <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+          {[
+            { product: 'recruit', name: 'Recruit', tagline: 'Use It', price: '$97', full: '$197', features: ['6 conversation lessons', 'Lesson 1 free today', 'Founding member access', 'Direct channel with build team'], highlight: false },
+            { product: 'agent', name: 'Agent', tagline: 'Build It', price: '$197', full: '$397', features: ['Requires Recruit completion', 'Workflow + prompt systems', 'Readiness assessment', 'Monthly cohort start'], highlight: false },
+            { product: 'operator', name: 'Operator', tagline: 'Run It', price: '$497', full: '$997', features: ['Requires Agent completion', 'AI at team/business scale', 'Small cohort (20 max)', 'Quarterly start'], highlight: false },
+            { product: 'bundle', name: 'Full Track', tagline: 'All Three', price: '$597', full: '$1,591', features: ['All three tiers included', 'Save $194 vs individual', 'Start at Recruit today', 'Unlock as you complete each'], highlight: true },
+          ].map((p) => (
+            <div key={p.product} className="rounded-xl p-5 border flex flex-col" style={{ background: p.highlight ? 'rgba(201,151,58,0.06)' : 'var(--surface)', borderColor: p.highlight ? 'var(--accent)' : 'var(--border)' }}>
+              {p.highlight && (
+                <span className="text-xs px-2 py-0.5 rounded-full self-start mb-3" style={{ background: 'var(--accent)', color: '#000' }}>Best value</span>
+              )}
+              <h3 className="text-lg font-bold mb-0.5">{p.name}</h3>
+              <p className="text-xs uppercase tracking-widest mb-4" style={{ color: 'var(--accent)' }}>{p.tagline}</p>
+              <ul className="space-y-2 flex-1 mb-5">
+                {p.features.map(f => (
+                  <li key={f} className="flex items-start gap-2 text-xs" style={{ color: 'var(--muted)' }}>
+                    <span style={{ color: 'var(--accent)' }}>—</span>{f}
+                  </li>
+                ))}
+              </ul>
+              <div className="mb-4">
+                <span className="text-2xl font-bold">{p.price}</span>
+                <span className="text-xs ml-2 line-through" style={{ color: 'var(--muted)' }}>{p.full}</span>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>founding cohort · one time</p>
               </div>
-              <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-lg">
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  className="flex-1 px-4 py-3 rounded-lg text-sm outline-none border"
-                  style={{
-                    background: 'var(--surface)',
-                    borderColor: 'var(--border)',
-                    color: 'var(--foreground)',
-                  }}
-                />
-                <button
-                  type="submit"
-                  disabled={status === 'loading'}
-                  className="px-6 py-3 rounded-lg text-sm font-semibold transition-opacity disabled:opacity-60 border"
-                  style={{ borderColor: 'var(--accent)', color: 'var(--accent)', background: 'transparent' }}
-                >
-                  {status === 'loading' ? 'Joining...' : 'Get Lesson 1 free'}
-                </button>
-              </form>
+              <button
+                onClick={() => startCheckout(p.product)}
+                className="w-full py-2.5 rounded-lg text-sm font-semibold border transition-opacity"
+                style={p.highlight
+                  ? { background: 'var(--accent)', color: '#000', borderColor: 'var(--accent)' }
+                  : { background: 'transparent', color: 'var(--accent)', borderColor: 'var(--accent)' }}
+              >
+                Get started
+              </button>
             </div>
-          )}
+          ))}
         </div>
+
+        <div className="flex items-center gap-3 max-w-lg mb-4">
+          <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
+          <span className="text-xs" style={{ color: 'var(--muted)' }}>not ready to pay? try Lesson 1 free first</span>
+          <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
+        </div>
+
+        {status === 'success' ? (
+          <div className="rounded-xl p-5 border max-w-lg" style={{ background: 'rgba(201,151,58,0.1)', borderColor: 'var(--accent)' }}>
+            <p className="font-semibold" style={{ color: 'var(--accent)' }}>You&apos;re on the list. Check your inbox for Lesson 1.</p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-lg">
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="your@email.com"
+              className="flex-1 px-4 py-3 rounded-lg text-sm outline-none border"
+              style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
+            />
+            <button
+              type="submit"
+              disabled={status === 'loading'}
+              className="px-6 py-3 rounded-lg text-sm font-semibold transition-opacity disabled:opacity-60 border"
+              style={{ borderColor: 'var(--accent)', color: 'var(--accent)', background: 'transparent' }}
+            >
+              {status === 'loading' ? 'Joining...' : 'Get Lesson 1 free'}
+            </button>
+          </form>
+        )}
       </section>
 
       {/* Footer */}
