@@ -2,20 +2,37 @@
 
 import { useState } from 'react'
 
-async function startCheckout(product: string = 'recruit') {
-  const res = await fetch('/api/checkout', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ token: null, product }),
-  })
-  const { url } = await res.json()
-  if (url) window.location.href = url
-}
-
 export default function Home() {
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [message, setMessage] = useState('')
+  const [checkoutError, setCheckoutError] = useState('')
+  const [gate, setGate] = useState<'agent' | 'operator' | null>(null)
+
+  async function startCheckout(product: string) {
+    setCheckoutError('')
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: null, product }),
+      })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        setCheckoutError('Something went wrong. Try again or contact us.')
+      }
+    } catch {
+      setCheckoutError('Something went wrong. Try again or contact us.')
+    }
+  }
+
+  function handleCardClick(product: string) {
+    if (product === 'agent') { setGate('agent'); return }
+    if (product === 'operator') { setGate('operator'); return }
+    startCheckout(product)
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -259,17 +276,21 @@ export default function Home() {
                 <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>founding cohort · one time</p>
               </div>
               <button
-                onClick={() => startCheckout(p.product)}
+                onClick={() => handleCardClick(p.product)}
                 className="w-full py-2.5 rounded-lg text-sm font-semibold border transition-opacity hover:opacity-80 cursor-pointer"
                 style={p.highlight
                   ? { background: 'var(--accent)', color: '#000', borderColor: 'var(--accent)' }
                   : { background: 'transparent', color: 'var(--accent)', borderColor: 'var(--accent)' }}
               >
-                Get started
+                {p.product === 'agent' || p.product === 'operator' ? 'Apply' : 'Get started'}
               </button>
             </div>
           ))}
         </div>
+
+        {checkoutError && (
+          <p className="text-sm mb-6" style={{ color: '#ef4444' }}>{checkoutError}</p>
+        )}
 
         <div className="flex items-center gap-3 max-w-lg mb-4">
           <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
@@ -303,6 +324,48 @@ export default function Home() {
           </form>
         )}
       </section>
+
+      {/* Gate modal */}
+      {gate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-6" style={{ background: 'rgba(0,0,0,0.85)' }}>
+          <div className="rounded-2xl p-8 border max-w-md w-full" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+            <p className="text-xs tracking-widest uppercase mb-2" style={{ color: 'var(--accent)' }}>
+              {gate === 'agent' ? '02 · Agent' : '03 · Operator'}
+            </p>
+            <h2 className="text-2xl font-bold mb-3">
+              {gate === 'agent' ? 'Before you join Agent' : 'Before you join Operator'}
+            </h2>
+            <p className="text-sm leading-relaxed mb-6" style={{ color: 'var(--muted)' }}>
+              {gate === 'agent'
+                ? 'Agent is for people who are already using AI daily. It requires completing Recruit first. If you haven\'t done Recruit, start there — Agent will make more sense after.'
+                : 'Operator is for people who have completed both Recruit and Agent. If you\'re not there yet, the Full Track gets you in at a better price and unlocks each tier as you complete it.'}
+            </p>
+            <div className="space-y-3">
+              <button
+                onClick={() => { setGate(null); startCheckout(gate) }}
+                className="w-full py-3 rounded-lg text-sm font-semibold hover:opacity-80 cursor-pointer transition-opacity"
+                style={{ background: 'var(--accent)', color: '#000' }}
+              >
+                I&apos;ve completed the prerequisite — continue
+              </button>
+              <button
+                onClick={() => { setGate(null); startCheckout('bundle') }}
+                className="w-full py-3 rounded-lg text-sm font-semibold border hover:opacity-80 cursor-pointer transition-opacity"
+                style={{ background: 'transparent', color: 'var(--accent)', borderColor: 'var(--accent)' }}
+              >
+                Get the Full Track instead ($597)
+              </button>
+              <button
+                onClick={() => setGate(null)}
+                className="w-full py-2 text-sm cursor-pointer hover:opacity-80 transition-opacity"
+                style={{ color: 'var(--muted)' }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer
