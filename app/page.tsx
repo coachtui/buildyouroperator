@@ -62,7 +62,7 @@ export default function Home() {
             className="inline-block mb-6 px-3 py-1 text-xs tracking-widest uppercase rounded-full border"
             style={{ borderColor: 'var(--accent)', color: 'var(--accent)', background: 'rgba(201,151,58,0.08)' }}
           >
-            Founding Cohort — 50 spots at $97
+            Founding Cohort · 50 spots · Recruit from $97
           </div>
 
           <h1 className="text-5xl sm:text-6xl font-bold leading-tight tracking-tight mb-6">
@@ -72,7 +72,7 @@ export default function Home() {
 
           <p className="text-lg sm:text-xl mb-10 leading-relaxed" style={{ color: 'var(--muted)' }}>
             Operator is the only AI course taught entirely through conversation.
-            No videos. No slides. Just you and an AI that teaches by doing — lesson by lesson, question by question.
+            No videos. No slides. Just you and an AI that asks questions back, corrects your thinking, and won&apos;t move on until you get it.
           </p>
 
           {status === 'success' ? (
@@ -137,29 +137,23 @@ export default function Home() {
           </div>
           <div className="rounded-xl p-6 border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
             <div className="space-y-4 text-sm">
-              <div className="flex gap-3 items-end">
-                <span className="text-xs shrink-0 pb-2" style={{ color: 'var(--muted)' }}>You</span>
-                <p className="rounded-lg px-4 py-2" style={{ background: 'var(--border)' }}>
-                  What&apos;s the difference between a good prompt and a bad one?
+              <div className="flex gap-3 items-start">
+                <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ background: 'var(--accent)', color: '#000' }}>G</div>
+                <p className="rounded-2xl px-4 py-2.5 leading-relaxed" style={{ background: 'rgba(201,151,58,0.12)', border: '1px solid rgba(201,151,58,0.2)', color: 'var(--foreground)' }}>
+                  Before we start — what do you think AI actually is, in your own words?
                 </p>
               </div>
-              <div className="flex gap-3 items-end justify-end">
-                <p className="rounded-lg px-4 py-2" style={{ background: 'rgba(201,151,58,0.15)', color: 'var(--foreground)' }}>
-                  Good question. Before I answer — what did your last prompt actually get you?
+              <div className="flex gap-3 items-start justify-end">
+                <p className="rounded-2xl px-4 py-2.5 leading-relaxed" style={{ background: 'var(--border)', color: 'var(--foreground)' }}>
+                  Honestly? I think it&apos;s kind of like a really smart Google.
                 </p>
-                <span className="text-xs shrink-0 pb-2" style={{ color: 'var(--accent)' }}>AI</span>
+                <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--muted)' }}>Y</div>
               </div>
-              <div className="flex gap-3 items-end">
-                <span className="text-xs shrink-0 pb-2" style={{ color: 'var(--muted)' }}>You</span>
-                <p className="rounded-lg px-4 py-2" style={{ background: 'var(--border)' }}>
-                  Something generic. Not what I needed.
+              <div className="flex gap-3 items-start">
+                <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ background: 'var(--accent)', color: '#000' }}>G</div>
+                <p className="rounded-2xl px-4 py-2.5 leading-relaxed" style={{ background: 'rgba(201,151,58,0.12)', border: '1px solid rgba(201,151,58,0.2)', color: 'var(--foreground)' }}>
+                  Most people say that. Here&apos;s the problem with it — what does Google do when you type something in?
                 </p>
-              </div>
-              <div className="flex gap-3 items-end justify-end">
-                <p className="rounded-lg px-4 py-2" style={{ background: 'rgba(201,151,58,0.15)', color: 'var(--foreground)' }}>
-                  Exactly. Let&apos;s fix it right now. Tell me what you were actually trying to do.
-                </p>
-                <span className="text-xs shrink-0 pb-2" style={{ color: 'var(--accent)' }}>AI</span>
               </div>
             </div>
           </div>
@@ -171,110 +165,88 @@ export default function Home() {
         <div style={{ borderTop: '1px solid var(--border)' }} />
       </div>
 
-      {/* Tiers */}
+      {/* Pricing */}
       <section className="max-w-5xl mx-auto px-6 py-20">
         <h2 className="text-3xl font-bold mb-3">Three levels. One destination.</h2>
-        <p className="mb-6" style={{ color: 'var(--muted)' }}>
+        <p className="mb-4" style={{ color: 'var(--muted)' }}>
           You don&apos;t complete Operator. You become one.
         </p>
         <div className="inline-flex items-start gap-2 mb-12 px-4 py-3 rounded-lg border text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface)', color: 'var(--muted)' }}>
           <span style={{ color: 'var(--accent)' }}>—</span>
-          <span>Each level requires completing the one before it. Agent requires Recruit. Operator requires Agent. You can&apos;t skip ahead.</span>
+          <span>Each level requires completing the one before it. You can&apos;t skip ahead.</span>
         </div>
 
-        <div className="grid sm:grid-cols-3 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
           {[
             {
+              product: 'recruit',
               label: '01',
               name: 'Recruit',
               tagline: 'Use It',
               desc: 'Zero to daily AI user. Six conversations that turn a skeptic into someone who opens the tool before anything else.',
+              features: ['6 conversation lessons', 'Lesson 1 free today', 'Founding member access', 'Direct channel with build team'],
               price: '$97',
-              fullPrice: '$197',
-              current: true,
-              prereq: null,
+              full: '$197',
+              badge: 'Open now',
+              badgeStyle: { background: 'var(--accent)', color: '#000' } as React.CSSProperties,
+              highlight: false,
             },
             {
+              product: 'agent',
               label: '02',
               name: 'Agent',
               tagline: 'Build It',
-              desc: 'You\'re using AI daily. Now you build with it. Workflows, prompt systems, and repeatable processes you can hand to anyone. You stop being a user and start being a builder.',
+              desc: 'You\'re using AI daily. Now you build with it. Workflows, prompt systems, and repeatable processes you can hand to anyone.',
+              features: ['Requires Recruit completion', 'Workflow + prompt systems', 'Readiness assessment', 'Monthly cohort start'],
               price: '$197',
-              fullPrice: '$397',
-              current: false,
-              prereq: 'Requires Recruit',
+              full: '$397',
+              badge: 'Requires Recruit',
+              badgeStyle: { background: 'transparent', border: '1px solid var(--border)', color: 'var(--muted)' } as React.CSSProperties,
+              highlight: false,
             },
             {
+              product: 'operator',
               label: '03',
               name: 'Operator',
               tagline: 'Run It',
-              desc: 'Running AI at scale — across a team, a business, a life. This is the designation the whole course is named after. You earn it by doing the work before it.',
+              desc: 'Running AI at scale — across a team, a business, a life. You earn this designation by doing the work before it.',
+              features: ['Requires Agent completion', 'AI at team/business scale', 'Small cohort (20 max)', 'Quarterly start'],
               price: '$497',
-              fullPrice: '$997',
-              current: false,
-              prereq: 'Requires Agent',
+              full: '$997',
+              badge: 'Requires Agent',
+              badgeStyle: { background: 'transparent', border: '1px solid var(--border)', color: 'var(--muted)' } as React.CSSProperties,
+              highlight: false,
             },
-          ].map((tier) => (
+            {
+              product: 'bundle',
+              label: null,
+              name: 'Full Track',
+              tagline: 'All Three',
+              desc: 'All three tiers in one. Start at Recruit today and unlock each level as you complete the one before it.',
+              features: ['All three tiers included', 'Save $194 vs individual', 'Start at Recruit today', 'Unlock as you complete each'],
+              price: '$597',
+              full: '$1,591',
+              badge: 'Best value',
+              badgeStyle: { background: 'var(--accent)', color: '#000' } as React.CSSProperties,
+              highlight: true,
+            },
+          ].map((p) => (
             <div
-              key={tier.name}
-              className="rounded-xl p-6 border flex flex-col"
+              key={p.product}
+              className="rounded-xl p-5 border flex flex-col"
               style={{
-                background: tier.current ? 'rgba(201,151,58,0.06)' : 'var(--surface)',
-                borderColor: tier.current ? 'var(--accent)' : 'var(--border)',
+                background: p.highlight ? 'rgba(201,151,58,0.06)' : 'var(--surface)',
+                borderColor: p.highlight ? 'var(--accent)' : 'var(--border)',
               }}
             >
-              <div className="flex items-start justify-between mb-4">
-                <span className="text-xs tracking-widest" style={{ color: 'var(--muted)' }}>{tier.label}</span>
-                {tier.current && (
-                  <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--accent)', color: '#000' }}>
-                    Open now
-                  </span>
-                )}
-                {tier.prereq && (
-                  <span className="text-xs px-2 py-0.5 rounded-full border" style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}>
-                    {tier.prereq}
-                  </span>
-                )}
+              <div className="flex items-start justify-between mb-3">
+                <span className="text-xs tracking-widest" style={{ color: 'var(--muted)' }}>{p.label ?? ''}</span>
+                <span className="text-xs px-2 py-0.5 rounded-full" style={p.badgeStyle}>{p.badge}</span>
               </div>
-              <h3 className="text-2xl font-bold mb-1">{tier.name}</h3>
-              <p className="text-xs uppercase tracking-widest mb-4" style={{ color: 'var(--accent)' }}>{tier.tagline}</p>
-              <p className="text-sm leading-relaxed flex-1 mb-6" style={{ color: 'var(--muted)' }}>{tier.desc}</p>
-              <div>
-                <span className="text-2xl font-bold">{tier.price}</span>
-                <span className="text-sm ml-2 line-through" style={{ color: 'var(--muted)' }}>{tier.fullPrice}</span>
-                <p className="text-xs mt-1" style={{ color: 'var(--muted)' }}>founding cohort price</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Divider */}
-      <div className="max-w-5xl mx-auto px-6">
-        <div style={{ borderTop: '1px solid var(--border)' }} />
-      </div>
-
-      {/* Pricing */}
-      <section className="max-w-5xl mx-auto px-6 py-20">
-        <h2 className="text-3xl font-bold mb-3">Founding cohort pricing.</h2>
-        <p className="mb-12" style={{ color: 'var(--muted)' }}>
-          50 spots. Then prices double. This isn&apos;t a sale — it&apos;s a different relationship.
-        </p>
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
-          {[
-            { product: 'recruit', name: 'Recruit', tagline: 'Use It', price: '$97', full: '$197', features: ['6 conversation lessons', 'Lesson 1 free today', 'Founding member access', 'Direct channel with build team'], highlight: false },
-            { product: 'agent', name: 'Agent', tagline: 'Build It', price: '$197', full: '$397', features: ['Requires Recruit completion', 'Workflow + prompt systems', 'Readiness assessment', 'Monthly cohort start'], highlight: false },
-            { product: 'operator', name: 'Operator', tagline: 'Run It', price: '$497', full: '$997', features: ['Requires Agent completion', 'AI at team/business scale', 'Small cohort (20 max)', 'Quarterly start'], highlight: false },
-            { product: 'bundle', name: 'Full Track', tagline: 'All Three', price: '$597', full: '$1,591', features: ['All three tiers included', 'Save $194 vs individual', 'Start at Recruit today', 'Unlock as you complete each'], highlight: true },
-          ].map((p) => (
-            <div key={p.product} className="rounded-xl p-5 border flex flex-col" style={{ background: p.highlight ? 'rgba(201,151,58,0.06)' : 'var(--surface)', borderColor: p.highlight ? 'var(--accent)' : 'var(--border)' }}>
-              {p.highlight && (
-                <span className="text-xs px-2 py-0.5 rounded-full self-start mb-3" style={{ background: 'var(--accent)', color: '#000' }}>Best value</span>
-              )}
-              <h3 className="text-lg font-bold mb-0.5">{p.name}</h3>
-              <p className="text-xs uppercase tracking-widest mb-4" style={{ color: 'var(--accent)' }}>{p.tagline}</p>
-              <ul className="space-y-2 flex-1 mb-5">
+              <h3 className="text-xl font-bold mb-0.5">{p.name}</h3>
+              <p className="text-xs uppercase tracking-widest mb-3" style={{ color: 'var(--accent)' }}>{p.tagline}</p>
+              <p className="text-xs leading-relaxed mb-4" style={{ color: 'var(--muted)' }}>{p.desc}</p>
+              <ul className="space-y-1.5 flex-1 mb-5">
                 {p.features.map(f => (
                   <li key={f} className="flex items-start gap-2 text-xs" style={{ color: 'var(--muted)' }}>
                     <span style={{ color: 'var(--accent)' }}>—</span>{f}
