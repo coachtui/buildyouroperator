@@ -270,6 +270,9 @@ When all goals are met:
 - This lesson should feel like a graduation, not a sales call`,
 }
 
+const MESSAGE_LIMIT_PAID = 50
+const MESSAGE_LIMIT_FREE = 15
+
 export async function POST(req: NextRequest) {
   const { messages, lesson, token } = await req.json()
 
@@ -286,7 +289,8 @@ export async function POST(req: NextRequest) {
   }
 
   // Waitlist tokens (no access:'full') are limited to lesson 1
-  const maxLesson = payload.access === 'full' ? 6 : 1
+  const isPaid = payload.access === 'full'
+  const maxLesson = isPaid ? 6 : 1
   if (lessonNumber > maxLesson) {
     return new Response('Upgrade required', { status: 403 })
   }
@@ -309,6 +313,50 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Look up user + session before streaming — used for rate limiting and persistence
+  const email = payload.email as string
+  const messageLimit = isPaid ? MESSAGE_LIMIT_PAID : MESSAGE_LIMIT_FREE
+
+  const { data: user } = await supabase
+    .from('users')
+    .select('id')
+    .eq('email', email)
+    .single()
+
+  let existingSessionId: string | null = null
+
+  if (user) {
+    const { data: existingSession } = await supabase
+      .from('lesson_sessions')
+      .select('id, messages')
+      .eq('user_id', user.id)
+      .eq('lesson_number', lessonNumber)
+      .single()
+
+    if (existingSession) {
+      existingSessionId = existingSession.id
+      const storedMessages = existingSession.messages as { role: string; content: string }[] | null
+      if (storedMessages) {
+        const storedCount = countRealUserMessages(storedMessages)
+        if (storedCount >= messageLimit) {
+          const limitMsg = isPaid
+            ? `You've covered everything this lesson has for you. Use the Continue button to move to the next lesson.`
+            : `You've hit the free limit for Lesson 1. Unlock all 6 lessons at https://buildyouroperator.com`
+          return new Response(limitMsg, { status: 429 })
+        }
+      }
+    }
+  } else {
+    // User not in DB (waitlist user before first session save) — rate limit from client messages
+    const clientCount = countRealUserMessages(messages)
+    if (clientCount >= messageLimit) {
+      return new Response(
+        `You've hit the free limit for Lesson 1. Unlock all 6 lessons at https://buildyouroperator.com`,
+        { status: 429 }
+      )
+    }
+  }
+
   const stream = await client.messages.stream({
     model: 'claude-sonnet-4-6',
     max_tokens: 512,
@@ -317,7 +365,6 @@ export async function POST(req: NextRequest) {
   })
 
   const encoder = new TextEncoder()
-  const email = payload.email as string
 
   const readable = new ReadableStream({
     async start(controller) {
@@ -334,32 +381,20 @@ export async function POST(req: NextRequest) {
       }
       controller.close()
 
+      if (!user) return
+
       // Persist conversation after stream completes
       const fullMessages = [...messages, { role: 'assistant', content: chunks.join('') }]
-      const { data: user } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', email)
-        .single()
 
-      if (user) {
-        const { data: existing } = await supabase
+      if (existingSessionId) {
+        await supabase
           .from('lesson_sessions')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('lesson_number', lessonNumber)
-          .single()
-
-        if (existing) {
-          await supabase
-            .from('lesson_sessions')
-            .update({ messages: fullMessages })
-            .eq('id', existing.id)
-        } else {
-          await supabase
-            .from('lesson_sessions')
-            .insert({ user_id: user.id, lesson_number: lessonNumber, messages: fullMessages })
-        }
+          .update({ messages: fullMessages })
+          .eq('id', existingSessionId)
+      } else {
+        await supabase
+          .from('lesson_sessions')
+          .insert({ user_id: user.id, lesson_number: lessonNumber, messages: fullMessages })
       }
     },
   })
