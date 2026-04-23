@@ -164,6 +164,28 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
     m => !(m.role === 'user' && SYSTEM_MESSAGES.some(s => m.content.startsWith(s)))
   )
 
+  const realUserMessageCount = messages.filter(
+    m => m.role === 'user' && !SYSTEM_MESSAGES.some(s => m.content.startsWith(s))
+  ).length
+
+  const showContinue = started && !loading && realUserMessageCount >= 4
+
+  async function handleContinue() {
+    await fetch('/api/complete-lesson', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, lesson: lesson.number }),
+    })
+
+    if (maxLesson === 1) {
+      router.push('/')
+    } else if (lesson.number < lesson.total) {
+      router.push(`/recruit/${lesson.number + 1}?token=${token}`)
+    } else {
+      router.push(`/recruit/complete?token=${token}`)
+    }
+  }
+
   if (authorized === null) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}>
@@ -262,6 +284,31 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
           </div>
         )}
       </div>
+
+      {showContinue && (
+        <div className="px-4 py-3 shrink-0" style={{ background: 'rgba(201,151,58,0.06)', borderTop: '1px solid rgba(201,151,58,0.2)' }}>
+          <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
+            <p className="text-xs" style={{ color: 'var(--muted)' }}>
+              {maxLesson === 1
+                ? 'Ready to keep going? Lessons 2–6 unlock the full course.'
+                : lesson.number < lesson.total
+                  ? `Feeling good about this lesson? Move on when you're ready.`
+                  : `You've finished all 6 lessons. You're an Operator.`}
+            </p>
+            <button
+              onClick={handleContinue}
+              className="px-4 py-2 rounded-lg text-xs font-semibold shrink-0 hover:opacity-80 cursor-pointer transition-opacity"
+              style={{ background: 'var(--accent)', color: '#000' }}
+            >
+              {maxLesson === 1
+                ? 'Unlock Lessons 2–6 →'
+                : lesson.number < lesson.total
+                  ? `Lesson ${lesson.number + 1} →`
+                  : 'See what\'s next →'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {started && (
         <div className="border-t px-4 py-4 shrink-0" style={{ borderColor: 'var(--border)', background: 'var(--background)' }}>
