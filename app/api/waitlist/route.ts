@@ -30,8 +30,11 @@ export async function POST(req: NextRequest) {
               No videos. No slides. Just you and an AI that teaches by doing.
             </p>
             <p style="color:#888;line-height:1.7;margin-bottom:32px;">
-              Lesson 1 is coming your way shortly. In the meantime, your founding cohort spot is held at $97 — that price won't be available once the waitlist closes.
+              Your founding cohort spot is held at $97 — that price won't be available once the waitlist closes.
             </p>
+            <a href="https://buildyouroperator.com/recruit/1" style="display:inline-block;background:#c9973a;color:#000;font-weight:600;font-size:14px;padding:14px 28px;border-radius:8px;text-decoration:none;margin-bottom:32px;">
+              Start Lesson 1 →
+            </a>
             <div style="border-top:1px solid #1a1a1a;padding-top:24px;margin-top:24px;">
               <p style="color:#555;font-size:12px;">Gojo · Operator by AIGA LLC</p>
             </div>
