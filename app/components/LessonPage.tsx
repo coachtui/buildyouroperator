@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import ThemeToggle from './ThemeToggle'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -292,7 +293,10 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
           <span className="text-xs" style={{ color: 'var(--border)' }}>|</span>
           <span className="text-xs" style={{ color: 'var(--muted)' }}>Recruit · Lesson {lesson.number} of {lesson.total}</span>
         </div>
-        <span className="text-xs hidden sm:block" style={{ color: 'var(--muted)' }}>{lesson.title}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs hidden sm:block" style={{ color: 'var(--muted)' }}>{lesson.title}</span>
+          <ThemeToggle />
+        </div>
       </header>
 
       <div className="flex-1 overflow-y-auto px-4 py-8 max-w-2xl mx-auto w-full">

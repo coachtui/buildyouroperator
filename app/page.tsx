@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import ThemeToggle from './components/ThemeToggle'
 
 type AnswerValue = 'pass' | 'neutral' | 'fail'
 type Question = {
@@ -171,9 +172,10 @@ export default function Home() {
         <span className="text-sm font-semibold tracking-[0.2em] uppercase" style={{ color: 'var(--accent)' }}>
           Operator
         </span>
-        <span className="text-xs" style={{ color: 'var(--muted)' }}>
-          by AIGA LLC
-        </span>
+        <div className="flex items-center gap-4">
+          <span className="text-xs" style={{ color: 'var(--muted)' }}>by AIGA LLC</span>
+          <ThemeToggle />
+        </div>
       </nav>
 
       {/* Hero */}
