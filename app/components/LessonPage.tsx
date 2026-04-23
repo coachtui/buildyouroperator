@@ -286,7 +286,7 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
   }
 
   return (
-    <div className="flex flex-col min-h-screen min-h-[100dvh]" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+    <div className="flex flex-col h-[100dvh]" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
       <header className="flex items-center justify-between px-6 py-4 border-b shrink-0" style={{ borderColor: 'var(--border)' }}>
         <div className="flex items-center gap-4">
           <span className="text-sm font-semibold tracking-[0.2em] uppercase" style={{ color: 'var(--accent)' }}>Operator</span>
