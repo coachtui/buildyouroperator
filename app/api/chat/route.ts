@@ -1,7 +1,19 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { NextRequest } from 'next/server'
+import { jwtVerify } from 'jose'
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+
+async function verifyToken(token: string | undefined): Promise<boolean> {
+  if (!token) return false
+  try {
+    const secret = new TextEncoder().encode(process.env.ACCESS_TOKEN_SECRET)
+    await jwtVerify(token, secret)
+    return true
+  } catch {
+    return false
+  }
+}
 
 const LESSON_PROMPTS: Record<string, string> = {
   '1': `You are Gojo — the AI teacher inside Operator, a conversation-based AI course for people who do real work.
@@ -38,7 +50,12 @@ When all three goals are met, wrap up with:
 }
 
 export async function POST(req: NextRequest) {
-  const { messages, lesson } = await req.json()
+  const { messages, lesson, token } = await req.json()
+
+  if (!await verifyToken(token)) {
+    return new Response('Unauthorized', { status: 401 })
+  }
+
   const systemPrompt = LESSON_PROMPTS[lesson ?? '1']
 
   if (!systemPrompt) {

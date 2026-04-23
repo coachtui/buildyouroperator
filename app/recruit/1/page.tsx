@@ -1,19 +1,38 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { Suspense } from 'react'
 
 interface Message {
   role: 'user' | 'assistant'
   content: string
 }
 
-export default function Lesson1() {
+function Lesson1Inner() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const token = searchParams.get('token')
+
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [started, setStarted] = useState(false)
+  const [authorized, setAuthorized] = useState<boolean | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    if (!token) {
+      setAuthorized(false)
+      return
+    }
+    fetch('/api/verify-token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token }),
+    }).then(r => setAuthorized(r.ok))
+  }, [token])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -31,13 +50,13 @@ export default function Lesson1() {
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: payload, lesson: '1' }),
+      body: JSON.stringify({ messages: payload, lesson: '1', token }),
     })
 
     if (!res.ok || !res.body) {
       setMessages(prev => [
         ...prev,
-        { role: 'assistant', content: "Something went wrong on my end. Give it a moment and try again." },
+        { role: 'assistant', content: 'Something went wrong on my end. Give it a moment and try again.' },
       ])
       return
     }
@@ -64,13 +83,11 @@ export default function Lesson1() {
 
   async function handleSend() {
     if (!input.trim() || loading) return
-
     const userMessage: Message = { role: 'user', content: input.trim() }
     const newMessages = [...messages, userMessage]
     setMessages(newMessages)
     setInput('')
     setLoading(true)
-
     await streamResponse(newMessages)
     setLoading(false)
     inputRef.current?.focus()
@@ -83,31 +100,53 @@ export default function Lesson1() {
     }
   }
 
-  return (
-    <div
-      className="flex flex-col min-h-screen"
-      style={{ background: 'var(--background)', color: 'var(--foreground)' }}
-    >
-      {/* Header */}
-      <header
-        className="flex items-center justify-between px-6 py-4 border-b shrink-0"
-        style={{ borderColor: 'var(--border)' }}
-      >
-        <div className="flex items-center gap-4">
-          <span
-            className="text-sm font-semibold tracking-[0.2em] uppercase"
-            style={{ color: 'var(--accent)' }}
+  // Loading auth check
+  if (authorized === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}>
+        <div className="flex gap-1">
+          {[0, 1, 2].map(i => (
+            <span key={i} className="w-2 h-2 rounded-full animate-bounce" style={{ background: 'var(--accent)', animationDelay: `${i * 0.15}s` }} />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // Not authorized
+  if (!authorized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-6" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+        <div className="max-w-md text-center">
+          <p className="text-xs tracking-widest uppercase mb-4" style={{ color: 'var(--accent)' }}>Operator</p>
+          <h1 className="text-2xl font-bold mb-4">Access required</h1>
+          <p className="mb-8 leading-relaxed" style={{ color: 'var(--muted)' }}>
+            Lesson 1 is free for waitlist members. Join the waitlist and we&apos;ll send you a link.
+          </p>
+          <button
+            onClick={() => router.push('/')}
+            className="px-6 py-3 rounded-lg text-sm font-semibold"
+            style={{ background: 'var(--accent)', color: '#000' }}
           >
+            Join the waitlist
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col min-h-screen" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+      {/* Header */}
+      <header className="flex items-center justify-between px-6 py-4 border-b shrink-0" style={{ borderColor: 'var(--border)' }}>
+        <div className="flex items-center gap-4">
+          <span className="text-sm font-semibold tracking-[0.2em] uppercase" style={{ color: 'var(--accent)' }}>
             Operator
           </span>
           <span className="text-xs" style={{ color: 'var(--border)' }}>|</span>
-          <span className="text-xs" style={{ color: 'var(--muted)' }}>
-            Recruit · Lesson 1 of 6
-          </span>
+          <span className="text-xs" style={{ color: 'var(--muted)' }}>Recruit · Lesson 1 of 6</span>
         </div>
-        <span className="text-xs" style={{ color: 'var(--muted)' }}>
-          What AI Actually Is
-        </span>
+        <span className="text-xs" style={{ color: 'var(--muted)' }}>What AI Actually Is</span>
       </header>
 
       {/* Chat area */}
@@ -115,17 +154,11 @@ export default function Lesson1() {
         {!started ? (
           <div className="flex flex-col items-center justify-center h-full min-h-[60vh] text-center gap-6">
             <div>
-              <p
-                className="text-xs tracking-widest uppercase mb-3"
-                style={{ color: 'var(--accent)' }}
-              >
+              <p className="text-xs tracking-widest uppercase mb-3" style={{ color: 'var(--accent)' }}>
                 Recruit · Lesson 1
               </p>
               <h1 className="text-3xl font-bold mb-3">What AI Actually Is</h1>
-              <p
-                className="text-sm leading-relaxed max-w-sm"
-                style={{ color: 'var(--muted)' }}
-              >
+              <p className="text-sm leading-relaxed max-w-sm" style={{ color: 'var(--muted)' }}>
                 This isn&apos;t a video. It&apos;s a conversation. Gojo will ask you questions,
                 correct your thinking, and won&apos;t move on until you get it.
               </p>
@@ -141,40 +174,25 @@ export default function Lesson1() {
         ) : (
           <div className="space-y-6">
             {messages.map((msg, i) => (
-              <div
-                key={i}
-                className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
+              <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 {msg.role === 'assistant' && (
-                  <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-1"
-                    style={{ background: 'var(--accent)', color: '#000' }}
-                  >
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-1" style={{ background: 'var(--accent)', color: '#000' }}>
                     G
                   </div>
                 )}
                 <div
                   className="rounded-2xl px-4 py-3 text-sm leading-relaxed max-w-[85%]"
                   style={{
-                    background:
-                      msg.role === 'user'
-                        ? 'var(--surface)'
-                        : 'rgba(201,151,58,0.1)',
+                    background: msg.role === 'user' ? 'var(--surface)' : 'rgba(201,151,58,0.1)',
                     border: `1px solid ${msg.role === 'user' ? 'var(--border)' : 'rgba(201,151,58,0.2)'}`,
                     color: 'var(--foreground)',
                     whiteSpace: 'pre-wrap',
                   }}
                 >
                   {msg.content}
-                  {msg.role === 'assistant' && loading && i === messages.length - 1 && msg.content === '' && (
-                    <span className="inline-block w-2 h-4 ml-1 animate-pulse" style={{ background: 'var(--accent)' }} />
-                  )}
                 </div>
                 {msg.role === 'user' && (
-                  <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-1"
-                    style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--muted)' }}
-                  >
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-1" style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--muted)' }}>
                     Y
                   </div>
                 )}
@@ -182,23 +200,13 @@ export default function Lesson1() {
             ))}
             {loading && messages[messages.length - 1]?.role !== 'assistant' && (
               <div className="flex gap-3">
-                <div
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                  style={{ background: 'var(--accent)', color: '#000' }}
-                >
+                <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ background: 'var(--accent)', color: '#000' }}>
                   G
                 </div>
-                <div
-                  className="rounded-2xl px-4 py-3"
-                  style={{ background: 'rgba(201,151,58,0.1)', border: '1px solid rgba(201,151,58,0.2)' }}
-                >
+                <div className="rounded-2xl px-4 py-3" style={{ background: 'rgba(201,151,58,0.1)', border: '1px solid rgba(201,151,58,0.2)' }}>
                   <span className="flex gap-1">
                     {[0, 1, 2].map(i => (
-                      <span
-                        key={i}
-                        className="w-1.5 h-1.5 rounded-full animate-bounce"
-                        style={{ background: 'var(--accent)', animationDelay: `${i * 0.15}s` }}
-                      />
+                      <span key={i} className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: 'var(--accent)', animationDelay: `${i * 0.15}s` }} />
                     ))}
                   </span>
                 </div>
@@ -211,10 +219,7 @@ export default function Lesson1() {
 
       {/* Input */}
       {started && (
-        <div
-          className="border-t px-4 py-4 shrink-0"
-          style={{ borderColor: 'var(--border)', background: 'var(--background)' }}
-        >
+        <div className="border-t px-4 py-4 shrink-0" style={{ borderColor: 'var(--border)', background: 'var(--background)' }}>
           <div className="max-w-2xl mx-auto flex gap-3 items-end">
             <textarea
               ref={inputRef}
@@ -225,12 +230,7 @@ export default function Lesson1() {
               rows={1}
               disabled={loading}
               className="flex-1 resize-none rounded-xl px-4 py-3 text-sm outline-none border disabled:opacity-50"
-              style={{
-                background: 'var(--surface)',
-                borderColor: 'var(--border)',
-                color: 'var(--foreground)',
-                maxHeight: '120px',
-              }}
+              style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)', maxHeight: '120px' }}
             />
             <button
               onClick={handleSend}
@@ -247,5 +247,13 @@ export default function Lesson1() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function Lesson1() {
+  return (
+    <Suspense>
+      <Lesson1Inner />
+    </Suspense>
   )
 }
