@@ -46,7 +46,7 @@ function Lesson1Inner() {
   }
 
   async function streamResponse(history: Message[], isOpening = false) {
-    const payload = isOpening ? [] : history
+    const payload = isOpening ? [{ role: 'user', content: 'Begin the lesson.' }] : history
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
