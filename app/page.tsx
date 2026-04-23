@@ -174,9 +174,13 @@ export default function Home() {
       {/* Tiers */}
       <section className="max-w-5xl mx-auto px-6 py-20">
         <h2 className="text-3xl font-bold mb-3">Three levels. One destination.</h2>
-        <p className="mb-12" style={{ color: 'var(--muted)' }}>
+        <p className="mb-6" style={{ color: 'var(--muted)' }}>
           You don&apos;t complete Operator. You become one.
         </p>
+        <div className="inline-flex items-start gap-2 mb-12 px-4 py-3 rounded-lg border text-sm" style={{ borderColor: 'var(--border)', background: 'var(--surface)', color: 'var(--muted)' }}>
+          <span style={{ color: 'var(--accent)' }}>—</span>
+          <span>Each level requires completing the one before it. Agent requires Recruit. Operator requires Agent. You can&apos;t skip ahead.</span>
+        </div>
 
         <div className="grid sm:grid-cols-3 gap-6">
           {[
@@ -188,24 +192,27 @@ export default function Home() {
               price: '$97',
               fullPrice: '$197',
               current: true,
+              prereq: null,
             },
             {
               label: '02',
               name: 'Agent',
               tagline: 'Build It',
-              desc: 'Build workflows, prompt systems, and repeatable processes. You stop using AI and start deploying it.',
+              desc: 'You\'re using AI daily. Now you build with it. Workflows, prompt systems, and repeatable processes you can hand to anyone. You stop being a user and start being a builder.',
               price: '$197',
               fullPrice: '$397',
               current: false,
+              prereq: 'Requires Recruit',
             },
             {
               label: '03',
               name: 'Operator',
               tagline: 'Run It',
-              desc: 'Running AI at scale across a team, a business, a life. This is the designation. You earn it.',
+              desc: 'Running AI at scale — across a team, a business, a life. This is the designation the whole course is named after. You earn it by doing the work before it.',
               price: '$497',
               fullPrice: '$997',
               current: false,
+              prereq: 'Requires Agent',
             },
           ].map((tier) => (
             <div
@@ -221,6 +228,11 @@ export default function Home() {
                 {tier.current && (
                   <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--accent)', color: '#000' }}>
                     Open now
+                  </span>
+                )}
+                {tier.prereq && (
+                  <span className="text-xs px-2 py-0.5 rounded-full border" style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}>
+                    {tier.prereq}
                   </span>
                 )}
               </div>
