@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { SignJWT } from 'jose'
+import { supabase } from '@/app/lib/supabase'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const FROM = 'Gojo at Operator <gojo@mail.buildyouroperator.com>'
@@ -27,6 +28,17 @@ export async function POST(req: NextRequest) {
 
   try {
     const token = await generateAccessToken(normalized)
+
+    const { error: dbError } = await supabase
+      .from('users')
+      .upsert(
+        { email: normalized, tier: 'recruit', token, current_lesson: 1 },
+        { onConflict: 'email', ignoreDuplicates: false }
+      )
+
+    if (dbError) {
+      console.error('Supabase error:', dbError)
+    }
     const lesson1Url = `${BASE_URL}/recruit/1?token=${token}`
 
     await Promise.all([

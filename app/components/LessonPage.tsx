@@ -56,14 +56,25 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token }),
-    }).then(r => {
+    }).then(async r => {
       if (!r.ok) { setAuthorized(false); return }
       setAuthorized(true)
-      const saved = loadSession(token, lesson.number)
-      if (saved && saved.messages.length > 0) {
-        setMessages(saved.messages)
+
+      // Try Supabase first, fall back to localStorage
+      const dbRes = await fetch(`/api/session?token=${encodeURIComponent(token)}&lesson=${lesson.number}`)
+      const dbData = await dbRes.json()
+
+      if (dbData.messages && dbData.messages.length > 0) {
+        setMessages(dbData.messages)
         setStarted(true)
         setResuming(true)
+      } else {
+        const saved = loadSession(token, lesson.number)
+        if (saved && saved.messages.length > 0) {
+          setMessages(saved.messages)
+          setStarted(true)
+          setResuming(true)
+        }
       }
     })
   }, [token, lesson.number])
@@ -199,9 +210,6 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
               <h1 className="text-3xl font-bold mb-3">{lesson.title}</h1>
               <p className="text-sm leading-relaxed max-w-sm" style={{ color: 'var(--muted)' }}>
                 This isn&apos;t a video. It&apos;s a conversation. Gojo will ask you questions, correct your thinking, and won&apos;t move on until you get it.
-              </p>
-              <p className="text-xs mt-4" style={{ color: 'var(--muted)' }}>
-                Note: Gojo&apos;s memory resets between sessions. He&apos;ll catch up on where you left off, but won&apos;t remember details from earlier conversations.
               </p>
             </div>
             <button onClick={startLesson} className="px-8 py-3 rounded-lg text-sm font-semibold hover:opacity-80 cursor-pointer transition-opacity" style={{ background: 'var(--accent)', color: '#000' }}>

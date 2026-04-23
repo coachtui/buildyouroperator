@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 type AnswerValue = 'pass' | 'neutral' | 'fail'
 type Question = {
@@ -73,10 +73,17 @@ export default function Home() {
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [message, setMessage] = useState('')
+  const [resendEmail, setResendEmail] = useState('')
+  const [resendStatus, setResendStatus] = useState<'idle' | 'loading' | 'sent'>('idle')
+  const [spotsLeft, setSpotsLeft] = useState<number | null>(null)
   const [checkoutError, setCheckoutError] = useState('')
   const [gate, setGate] = useState<'agent' | 'operator' | null>(null)
   const [quizAnswers, setQuizAnswers] = useState<Record<string, number>>({})
   const [quizResult, setQuizResult] = useState<'not-ready' | null>(null)
+
+  useEffect(() => {
+    fetch('/api/count').then(r => r.json()).then(d => setSpotsLeft(d.remaining))
+  }, [])
 
   async function startCheckout(product: string) {
     setCheckoutError('')
@@ -176,7 +183,7 @@ export default function Home() {
             className="inline-block mb-6 px-3 py-1 text-xs tracking-widest uppercase rounded-full border"
             style={{ borderColor: 'var(--accent)', color: 'var(--accent)', background: 'rgba(201,151,58,0.08)' }}
           >
-            Founding Cohort · 50 spots · Recruit from $97
+            Founding Cohort · {spotsLeft === null ? '50' : spotsLeft} spots left · Recruit from $97
           </div>
 
           <h1 className="text-5xl sm:text-6xl font-bold leading-tight tracking-tight mb-6">
@@ -523,6 +530,53 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* Lost your link */}
+      <section className="max-w-5xl mx-auto px-6 pb-16">
+        <div className="flex items-center gap-3 max-w-lg mb-4">
+          <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
+          <span className="text-xs whitespace-nowrap" style={{ color: 'var(--muted)' }}>already signed up?</span>
+          <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
+        </div>
+        {resendStatus === 'sent' ? (
+          <p className="text-sm max-w-lg" style={{ color: 'var(--muted)' }}>
+            If you&apos;re on the list, your link is on the way.
+          </p>
+        ) : (
+          <form
+            onSubmit={async e => {
+              e.preventDefault()
+              if (!resendEmail) return
+              setResendStatus('loading')
+              await fetch('/api/resend-link', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: resendEmail }),
+              })
+              setResendStatus('sent')
+            }}
+            className="flex flex-col sm:flex-row gap-3 max-w-lg"
+          >
+            <input
+              type="email"
+              required
+              value={resendEmail}
+              onChange={e => setResendEmail(e.target.value)}
+              placeholder="your@email.com"
+              className="flex-1 px-4 py-3 rounded-lg text-sm outline-none border"
+              style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
+            />
+            <button
+              type="submit"
+              disabled={resendStatus === 'loading'}
+              className="px-6 py-3 rounded-lg text-sm font-semibold transition-opacity disabled:opacity-60 hover:opacity-80 cursor-pointer border"
+              style={{ borderColor: 'var(--border)', color: 'var(--muted)', background: 'transparent' }}
+            >
+              {resendStatus === 'loading' ? 'Sending...' : 'Resend my link'}
+            </button>
+          </form>
+        )}
+      </section>
 
       {/* Footer */}
       <footer

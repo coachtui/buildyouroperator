@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { NextRequest } from 'next/server'
 import { jwtVerify, JWTPayload } from 'jose'
+import { supabase } from '@/app/lib/supabase'
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -309,18 +310,51 @@ export async function POST(req: NextRequest) {
   })
 
   const encoder = new TextEncoder()
+  const email = payload.email as string
+  const lessonNumber = parseInt(lesson ?? '1')
 
   const readable = new ReadableStream({
     async start(controller) {
+      const chunks: string[] = []
+
       for await (const chunk of stream) {
         if (
           chunk.type === 'content_block_delta' &&
           chunk.delta.type === 'text_delta'
         ) {
+          chunks.push(chunk.delta.text)
           controller.enqueue(encoder.encode(chunk.delta.text))
         }
       }
       controller.close()
+
+      // Persist conversation after stream completes
+      const fullMessages = [...messages, { role: 'assistant', content: chunks.join('') }]
+      const { data: user } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', email)
+        .single()
+
+      if (user) {
+        const { data: existing } = await supabase
+          .from('lesson_sessions')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('lesson_number', lessonNumber)
+          .single()
+
+        if (existing) {
+          await supabase
+            .from('lesson_sessions')
+            .update({ messages: fullMessages })
+            .eq('id', existing.id)
+        } else {
+          await supabase
+            .from('lesson_sessions')
+            .insert({ user_id: user.id, lesson_number: lessonNumber, messages: fullMessages })
+        }
+      }
     },
   })
 
