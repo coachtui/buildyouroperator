@@ -100,6 +100,13 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
   }, [messages, started, token, lesson.number])
 
   useEffect(() => {
+    const ta = inputRef.current
+    if (!ta) return
+    ta.style.height = 'auto'
+    ta.style.height = Math.min(ta.scrollHeight, 120) + 'px'
+  }, [input])
+
+  useEffect(() => {
     if (!resuming || messages.length === 0) return
     setResuming(false)
     const lastGojo = [...messages].reverse().find(m => m.role === 'assistant')
@@ -278,14 +285,14 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
   }
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+    <div className="flex flex-col min-h-screen min-h-[100dvh]" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
       <header className="flex items-center justify-between px-6 py-4 border-b shrink-0" style={{ borderColor: 'var(--border)' }}>
         <div className="flex items-center gap-4">
           <span className="text-sm font-semibold tracking-[0.2em] uppercase" style={{ color: 'var(--accent)' }}>Operator</span>
           <span className="text-xs" style={{ color: 'var(--border)' }}>|</span>
           <span className="text-xs" style={{ color: 'var(--muted)' }}>Recruit · Lesson {lesson.number} of {lesson.total}</span>
         </div>
-        <span className="text-xs" style={{ color: 'var(--muted)' }}>{lesson.title}</span>
+        <span className="text-xs hidden sm:block" style={{ color: 'var(--muted)' }}>{lesson.title}</span>
       </header>
 
       <div className="flex-1 overflow-y-auto px-4 py-8 max-w-2xl mx-auto w-full">
@@ -346,7 +353,7 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
 
       {showContinue && (
         <div className="px-4 py-3 shrink-0" style={{ background: 'rgba(201,151,58,0.06)', borderTop: '1px solid rgba(201,151,58,0.2)' }}>
-          <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
+          <div className="max-w-2xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <p className="text-xs" style={{ color: 'var(--muted)' }}>
               {maxLesson === 1
                 ? 'Ready to keep going? Lessons 2–6 unlock the full course.'
@@ -356,7 +363,7 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
             </p>
             <button
               onClick={handleContinue}
-              className="px-4 py-2 rounded-lg text-xs font-semibold shrink-0 hover:opacity-80 cursor-pointer transition-opacity"
+              className="px-4 py-2 rounded-lg text-xs font-semibold shrink-0 hover:opacity-80 cursor-pointer transition-opacity self-start sm:self-auto"
               style={{ background: 'var(--accent)', color: '#000' }}
             >
               {maxLesson === 1
@@ -387,7 +394,7 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
               Send
             </button>
           </div>
-          <p className="text-center text-xs mt-2" style={{ color: 'var(--muted)' }}>Enter to send · Shift+Enter for new line</p>
+          <p className="text-center text-xs mt-2 hidden sm:block" style={{ color: 'var(--muted)' }}>Enter to send · Shift+Enter for new line</p>
         </div>
       )}
     </div>
