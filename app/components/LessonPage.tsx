@@ -46,8 +46,11 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
   const [loading, setLoading] = useState(false)
   const [started, setStarted] = useState(false)
   const [authorized, setAuthorized] = useState<boolean | null>(null)
+  const [tokenExpired, setTokenExpired] = useState(false)
   const [maxLesson, setMaxLesson] = useState<number>(6)
   const [resuming, setResuming] = useState(false)
+  const [resendEmail, setResendEmail] = useState('')
+  const [resendStatus, setResendStatus] = useState<'idle' | 'loading' | 'sent'>('idle')
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -58,7 +61,12 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token }),
     }).then(async r => {
-      if (!r.ok) { setAuthorized(false); return }
+      if (!r.ok) {
+        const data = await r.json()
+        if (data.error === 'expired') setTokenExpired(true)
+        setAuthorized(false)
+        return
+      }
       const authData = await r.json()
       setMaxLesson(authData.maxLesson ?? 6)
       if (lesson.number > (authData.maxLesson ?? 6)) { setAuthorized(false); return }
@@ -200,6 +208,57 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
 
   if (!authorized) {
     const isPaidGate = lesson.number > maxLesson
+
+    if (tokenExpired) {
+      return (
+        <div className="min-h-screen flex items-center justify-center px-6" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+          <div className="max-w-md text-center">
+            <p className="text-xs tracking-widest uppercase mb-4" style={{ color: 'var(--accent)' }}>Operator</p>
+            <h1 className="text-2xl font-bold mb-4">Your link expired</h1>
+            <p className="mb-8 leading-relaxed" style={{ color: 'var(--muted)' }}>
+              Waitlist links expire after 30 days. Enter your email and we&apos;ll send a fresh one.
+            </p>
+            {resendStatus === 'sent' ? (
+              <p className="text-sm" style={{ color: 'var(--accent)' }}>Check your inbox — a new link is on the way.</p>
+            ) : (
+              <form
+                onSubmit={async e => {
+                  e.preventDefault()
+                  if (!resendEmail) return
+                  setResendStatus('loading')
+                  await fetch('/api/resend-link', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: resendEmail }),
+                  })
+                  setResendStatus('sent')
+                }}
+                className="flex flex-col gap-3"
+              >
+                <input
+                  type="email"
+                  required
+                  value={resendEmail}
+                  onChange={e => setResendEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="px-4 py-3 rounded-lg text-sm outline-none border"
+                  style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
+                />
+                <button
+                  type="submit"
+                  disabled={resendStatus === 'loading'}
+                  className="px-6 py-3 rounded-lg text-sm font-semibold disabled:opacity-60 hover:opacity-80 cursor-pointer transition-opacity"
+                  style={{ background: 'var(--accent)', color: '#000' }}
+                >
+                  {resendStatus === 'loading' ? 'Sending...' : 'Send new link'}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )
+    }
+
     return (
       <div className="min-h-screen flex items-center justify-center px-6" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
         <div className="max-w-md text-center">

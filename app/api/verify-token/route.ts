@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { jwtVerify } from 'jose'
+import { jwtVerify, errors } from 'jose'
 
 export async function POST(req: NextRequest) {
   const { token } = await req.json()
@@ -16,7 +16,10 @@ export async function POST(req: NextRequest) {
     const maxLesson = payload.access === 'full' ? 6 : 1
 
     return NextResponse.json({ ok: true, tier: payload.tier ?? 'recruit', maxLesson })
-  } catch {
-    return NextResponse.json({ error: 'Invalid or expired token.' }, { status: 401 })
+  } catch (err) {
+    if (err instanceof errors.JWTExpired) {
+      return NextResponse.json({ error: 'expired' }, { status: 401 })
+    }
+    return NextResponse.json({ error: 'invalid' }, { status: 401 })
   }
 }
