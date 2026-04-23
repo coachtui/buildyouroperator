@@ -34,7 +34,13 @@ export default function Lesson1() {
       body: JSON.stringify({ messages: payload, lesson: '1' }),
     })
 
-    if (!res.body) return
+    if (!res.ok || !res.body) {
+      setMessages(prev => [
+        ...prev,
+        { role: 'assistant', content: "Something went wrong on my end. Give it a moment and try again." },
+      ])
+      return
+    }
 
     const reader = res.body.getReader()
     const decoder = new TextDecoder()
