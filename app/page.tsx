@@ -2,6 +2,16 @@
 
 import { useState } from 'react'
 
+async function startCheckout() {
+  const res = await fetch('/api/checkout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: null }),
+  })
+  const { url } = await res.json()
+  if (url) window.location.href = url
+}
+
 export default function Home() {
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
@@ -262,29 +272,43 @@ export default function Home() {
               <p className="font-semibold" style={{ color: 'var(--accent)' }}>You&apos;re on the list. Check your inbox for Lesson 1.</p>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-lg">
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="your@email.com"
-                className="flex-1 px-4 py-3 rounded-lg text-sm outline-none border"
-                style={{
-                  background: 'var(--surface)',
-                  borderColor: 'var(--border)',
-                  color: 'var(--foreground)',
-                }}
-              />
+            <div className="space-y-4">
               <button
-                type="submit"
-                disabled={status === 'loading'}
-                className="px-6 py-3 rounded-lg text-sm font-semibold transition-opacity disabled:opacity-60"
+                onClick={startCheckout}
+                className="w-full sm:w-auto px-8 py-4 rounded-lg text-base font-semibold"
                 style={{ background: 'var(--accent)', color: '#000' }}
               >
-                {status === 'loading' ? 'Joining...' : 'Secure my spot'}
+                Join founding cohort — $97
               </button>
-            </form>
+              <div className="flex items-center gap-3 max-w-lg">
+                <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
+                <span className="text-xs" style={{ color: 'var(--muted)' }}>or try Lesson 1 free first</span>
+                <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
+              </div>
+              <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-lg">
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="flex-1 px-4 py-3 rounded-lg text-sm outline-none border"
+                  style={{
+                    background: 'var(--surface)',
+                    borderColor: 'var(--border)',
+                    color: 'var(--foreground)',
+                  }}
+                />
+                <button
+                  type="submit"
+                  disabled={status === 'loading'}
+                  className="px-6 py-3 rounded-lg text-sm font-semibold transition-opacity disabled:opacity-60 border"
+                  style={{ borderColor: 'var(--accent)', color: 'var(--accent)', background: 'transparent' }}
+                >
+                  {status === 'loading' ? 'Joining...' : 'Get Lesson 1 free'}
+                </button>
+              </form>
+            </div>
           )}
         </div>
       </section>
