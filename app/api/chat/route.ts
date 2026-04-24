@@ -288,18 +288,25 @@ export async function POST(req: NextRequest) {
     return new Response('Unknown lesson', { status: 400 })
   }
 
-  // Waitlist tokens (no access:'full') are limited to lesson 1
-  const isPaid = payload.access === 'full'
+  // DB is authoritative for access level — JWT only identifies the user
+  const email = payload.email as string
+  const { data: user } = await supabase
+    .from('users')
+    .select('id, tier')
+    .eq('email', email)
+    .single()
+
+  const dbTier = user?.tier ?? 'recruit'
+  const isPaid = dbTier !== 'recruit'
   const maxLesson = isPaid ? 6 : 1
   if (lessonNumber > maxLesson) {
     return new Response('Upgrade required', { status: 403 })
   }
 
-  const tier = payload.tier as string | undefined
-  if (tier && tier !== 'recruit' && RECRUIT_LESSONS.has(lesson ?? '1')) {
+  if (dbTier !== 'recruit' && RECRUIT_LESSONS.has(lesson ?? '1')) {
     const userCount = countRealUserMessages(messages)
     if (userCount >= 3) {
-      const capMsg = prerequisiteLimitMessage(tier)
+      const capMsg = prerequisiteLimitMessage(dbTier)
       const encoder = new TextEncoder()
       const readable = new ReadableStream({
         start(controller) {
@@ -313,15 +320,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Look up user + session before streaming — used for rate limiting and persistence
-  const email = payload.email as string
   const messageLimit = isPaid ? MESSAGE_LIMIT_PAID : MESSAGE_LIMIT_FREE
-
-  const { data: user } = await supabase
-    .from('users')
-    .select('id')
-    .eq('email', email)
-    .single()
 
   let existingSessionId: string | null = null
 

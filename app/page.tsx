@@ -601,9 +601,12 @@ export default function Home() {
         <span className="text-sm font-semibold tracking-[0.2em] uppercase" style={{ color: 'var(--accent)' }}>
           Operator
         </span>
-        <span className="text-xs" style={{ color: 'var(--muted)' }}>
-          © 2026 AIGA LLC
-        </span>
+        <div className="flex items-center gap-5 text-xs" style={{ color: 'var(--muted)' }}>
+          <a href="/privacy" style={{ color: 'var(--muted)', textDecoration: 'none' }}>Privacy</a>
+          <a href="/terms" style={{ color: 'var(--muted)', textDecoration: 'none' }}>Terms</a>
+          <a href="/faq" style={{ color: 'var(--muted)', textDecoration: 'none' }}>FAQ</a>
+          <span>© 2026 AIGA LLC</span>
+        </div>
       </footer>
 
     </main>
