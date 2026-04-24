@@ -297,11 +297,12 @@ export default function Home() {
 
         <div className="rounded-xl p-6 border mb-12 max-w-2xl" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
           <p className="text-xs tracking-widest uppercase mb-3" style={{ color: 'var(--accent)' }}>How this works</p>
-          <p className="text-sm leading-relaxed mb-3" style={{ color: 'var(--foreground)' }}>
-            This curriculum is built from the inside out. Recruit launches first. Agent is designed from what Recruit graduates tell us they needed. Operator from what Agent graduates are ready for.
-          </p>
           <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
-            No guessing. No theory borrowed from other courses. Each tier is shaped by the people who just finished the one before it — which means founding cohort members aren&apos;t just taking a course. They&apos;re building it.
+            Recruit is live. Agent and Operator are next.<br /><br />
+            This isn&apos;t a static course — it&apos;s a living system.<br />
+            Every lesson is continuously refined based on real usage.<br />
+            The version you take today is better than last month&apos;s.<br />
+            Next month&apos;s will be better than today&apos;s.
           </p>
         </div>
 
