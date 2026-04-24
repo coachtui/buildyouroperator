@@ -37,6 +37,15 @@ const SYSTEM_MESSAGES = [
   'The student is returning.',
 ]
 
+const LESSON_DESCRIPTIONS: Record<number, string> = {
+  1: "This isn't a video. It's a conversation. By the end, you'll have one concrete shift in how you understand what AI actually is — and why the quality of your instructions determines everything you get back.",
+  2: "This isn't a video. It's a conversation. You'll identify the difference between a weak instruction and a strong one, then rewrite one of your own bad ones live. You leave with a better prompt — and the word for it.",
+  3: "This isn't a video. It's a conversation. You'll describe your work, and Gojo will give you a specific recommendation — one tool, chosen for your situation — and you'll know exactly how to start using it.",
+  4: "This isn't a video. It's a conversation. You'll describe your actual job, and by the end you'll have 2–3 real prompts — built live, from your specific work — that you can use this week.",
+  5: "This isn't a video. It's a conversation. You'll pick a task you do from scratch every time, map it into steps, turn those steps into a reusable prompt sequence, and run it once before you leave.",
+  6: "This isn't a video. It's a conversation. By the end, you'll see the line between someone who uses AI and someone who operates it — and you'll realize you already crossed it.",
+}
+
 export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -308,7 +317,7 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
               </p>
               <h1 className="text-3xl font-bold mb-3">{lesson.title}</h1>
               <p className="text-sm leading-relaxed max-w-sm" style={{ color: 'var(--muted)' }}>
-                This isn&apos;t a video. It&apos;s a conversation. Gojo will ask you questions, correct your thinking, and won&apos;t move on until you get it.
+                {LESSON_DESCRIPTIONS[lesson.number] ?? "This isn't a video. It's a conversation. Gojo will ask you questions, correct your thinking, and won't move on until you get it."}
               </p>
             </div>
             <button onClick={startLesson} className="px-8 py-3 rounded-lg text-sm font-semibold hover:opacity-80 cursor-pointer transition-opacity" style={{ background: 'var(--accent)', color: '#000' }}>

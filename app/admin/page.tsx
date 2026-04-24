@@ -16,6 +16,17 @@ interface LessonSession {
   created_at: string
 }
 
+interface LessonAnalysis {
+  user_id: string
+  lesson_number: number
+  sentiment: string
+  struggled_with: string | null
+  what_clicked: string | null
+  gaps_mentioned: string | null
+  summary: string
+  updated_at: string
+}
+
 export default async function AdminPage({
   searchParams,
 }: {
@@ -31,9 +42,10 @@ export default async function AdminPage({
     )
   }
 
-  const [{ data: users }, { data: sessions }] = await Promise.all([
+  const [{ data: users }, { data: sessions }, { data: analyses }] = await Promise.all([
     supabase.from('users').select('id, email, tier, current_lesson, created_at').order('created_at', { ascending: false }),
     supabase.from('lesson_sessions').select('user_id, lesson_number, messages, completed_at, created_at').order('created_at', { ascending: false }),
+    supabase.from('lesson_analyses').select('user_id, lesson_number, sentiment, struggled_with, what_clicked, gaps_mentioned, summary, updated_at').order('updated_at', { ascending: false }),
   ])
 
   const userList = (users ?? []) as User[]
@@ -70,6 +82,15 @@ export default async function AdminPage({
       m => m.role === 'user' && m.content !== 'Begin the lesson.' && !m.content.startsWith('The student is returning.')
     ).length
     msgCounts[s.user_id] = (msgCounts[s.user_id] ?? 0) + real
+  }
+
+  const analysisList = (analyses ?? []) as LessonAnalysis[]
+
+  // Sentiment counts per lesson
+  const sentimentByLesson: Record<number, Record<string, number>> = {}
+  for (const a of analysisList) {
+    if (!sentimentByLesson[a.lesson_number]) sentimentByLesson[a.lesson_number] = {}
+    sentimentByLesson[a.lesson_number][a.sentiment] = (sentimentByLesson[a.lesson_number][a.sentiment] ?? 0) + 1
   }
 
   const usersWithSessions = new Set(sessionList.map(s => s.user_id))
@@ -154,6 +175,76 @@ export default async function AdminPage({
                 ))}
               </tbody>
             </table>
+          </div>
+        </>
+      )}
+
+      {/* Session Insights */}
+      <h2 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, color: '#888' }}>Session Insights</h2>
+      <p style={{ ...dim, fontSize: 12, marginBottom: 16 }}>AI analysis of each completed lesson — sentiment, struggles, what landed, gaps.</p>
+
+      {analysisList.length === 0 ? (
+        <div style={{ background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: 8, padding: '24px', marginBottom: 40, ...dim, fontSize: 13 }}>
+          No analyses yet — they generate automatically when students complete lessons.
+        </div>
+      ) : (
+        <>
+          {/* Sentiment by lesson */}
+          <div style={{ background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: 8, marginBottom: 24, overflow: 'hidden' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: '#111' }}>
+                  {['Lesson', 'Analyses', 'Engaged', 'Excited', 'Mixed', 'Confused', 'Frustrated'].map(h => (
+                    <th key={h} style={{ ...cell, ...dim, fontWeight: 500, textAlign: 'left' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[1, 2, 3, 4, 5, 6].map(n => {
+                  const s = sentimentByLesson[n] ?? {}
+                  const total = Object.values(s).reduce((a, b) => a + b, 0)
+                  return (
+                    <tr key={n}>
+                      <td style={cell}>Lesson {n}</td>
+                      <td style={cell}>{total > 0 ? total : <span style={dim}>—</span>}</td>
+                      <td style={{ ...cell, color: total > 0 ? '#4ade80' : '#555' }}>{s['engaged'] ?? 0}</td>
+                      <td style={{ ...cell, color: total > 0 ? '#86efac' : '#555' }}>{s['excited'] ?? 0}</td>
+                      <td style={{ ...cell, color: total > 0 ? '#fbbf24' : '#555' }}>{s['mixed'] ?? 0}</td>
+                      <td style={{ ...cell, color: total > 0 ? '#f97316' : '#555' }}>{s['confused'] ?? 0}</td>
+                      <td style={{ ...cell, color: total > 0 ? '#f87171' : '#555' }}>{s['frustrated'] ?? 0}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Recent analyses */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 40 }}>
+            {analysisList.slice(0, 20).map((a, i) => {
+              const sentimentColor: Record<string, string> = {
+                engaged: '#4ade80', excited: '#86efac', mixed: '#fbbf24', confused: '#f97316', frustrated: '#f87171'
+              }
+              const user = userList.find(u => u.id === a.user_id)
+              return (
+                <div key={i} style={{ background: '#0f0f0f', border: '1px solid #1a1a1a', borderRadius: 8, padding: '16px 20px' }}>
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'baseline', marginBottom: 8, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 12, fontWeight: 600 }}>Lesson {a.lesson_number}</span>
+                    <span style={{ fontSize: 11, color: sentimentColor[a.sentiment] ?? '#888', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{a.sentiment}</span>
+                    <span style={{ ...dim, fontSize: 11 }}>{user?.email ?? a.user_id.slice(0, 8)}</span>
+                    <span style={{ ...dim, fontSize: 11, marginLeft: 'auto' }}>{new Date(a.updated_at).toLocaleDateString()}</span>
+                  </div>
+                  <p style={{ fontSize: 12, lineHeight: 1.6, marginBottom: a.struggled_with || a.what_clicked || a.gaps_mentioned ? 10 : 0 }}>{a.summary}</p>
+                  {(a.struggled_with || a.what_clicked || a.gaps_mentioned) && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingTop: 10, borderTop: '1px solid #1a1a1a' }}>
+                      {a.struggled_with && <p style={{ fontSize: 11 }}><span style={dim}>Struggled: </span>{a.struggled_with}</p>}
+                      {a.what_clicked && <p style={{ fontSize: 11 }}><span style={dim}>Clicked: </span>{a.what_clicked}</p>}
+                      {a.gaps_mentioned && <p style={{ fontSize: 11 }}><span style={{ color: '#f97316' }}>Gap: </span>{a.gaps_mentioned}</p>}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </>
       )}

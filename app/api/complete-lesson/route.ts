@@ -38,6 +38,14 @@ export async function POST(req: NextRequest) {
         .eq('id', user.id),
     ])
 
+    // Fire analysis in a separate invocation — non-blocking
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? `https://${process.env.VERCEL_URL}`
+    fetch(`${baseUrl}/api/analyze-lesson`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: user.id, lesson_number: lessonNumber }),
+    }).catch(() => {})
+
     return NextResponse.json({ ok: true })
   } catch {
     return NextResponse.json({ error: 'Failed.' }, { status: 500 })
