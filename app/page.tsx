@@ -194,7 +194,7 @@ export default function Home() {
           </h1>
 
           <p className="text-lg sm:text-xl font-semibold mb-6 leading-snug">
-            By the end, you&apos;ll have built prompts that replace real work you do every week.
+            You stop asking AI questions. You give it jobs.
           </p>
 
           <p className="text-lg sm:text-xl mb-10 leading-relaxed" style={{ color: 'var(--muted)' }}>
