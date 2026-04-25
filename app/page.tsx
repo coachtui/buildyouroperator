@@ -194,7 +194,7 @@ export default function Home() {
           </h1>
 
           <p className="text-lg sm:text-xl font-semibold mb-4 leading-snug">
-            Operators don&apos;t stop there. They run it.
+            Then you build with it. Then you run it.
           </p>
 
           <p className="text-base sm:text-lg mb-4 leading-relaxed">
