@@ -264,7 +264,7 @@ export default function Home() {
               No videos. No slides.
             </p>
             <p className="leading-relaxed" style={{ color: 'var(--muted)' }}>
-              You don&apos;t learn to talk to AI by watching someone else do it.
+              You don&apos;t learn to use or run AI by watching someone else do it.
               In Operator, you learn by doing — with an AI that asks questions back,
               corrects your thinking in real time, and doesn&apos;t move on until you get it.
               Because knowing how AI works doesn&apos;t help you. Building something that works for you does.
