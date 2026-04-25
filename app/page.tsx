@@ -267,7 +267,7 @@ export default function Home() {
               You don&apos;t learn to use or run AI by watching someone else do it.
               In Operator, you learn by doing — with an AI that asks questions back,
               corrects your thinking in real time, and doesn&apos;t move on until you get it.
-              Because knowing how AI works doesn&apos;t help you. Building something that works for you does.
+              Because knowing how AI works doesn&apos;t help you. Building something that does work for you does.
             </p>
           </div>
           <div className="rounded-xl p-6 border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
