@@ -188,14 +188,18 @@ export default function Home() {
             Founding Cohort · {spotsLeft === null ? '50' : spotsLeft} spots left · Recruit from $97
           </div>
 
-          <h1 className="text-5xl sm:text-6xl font-bold leading-tight tracking-tight mb-6">
+          <h1 className="text-5xl sm:text-6xl font-bold leading-tight tracking-tight mb-4">
             You don&apos;t watch AI.<br />
             <span style={{ color: 'var(--accent)' }}>You talk to it.</span>
           </h1>
 
+          <p className="text-lg sm:text-xl font-semibold mb-6 leading-snug">
+            By the end, you&apos;ll have built prompts that replace real work you do every week.
+          </p>
+
           <p className="text-lg sm:text-xl mb-10 leading-relaxed" style={{ color: 'var(--muted)' }}>
-            Operator is the only AI course taught entirely through conversation.
-            No videos. No slides. Just you and an AI that asks questions back, corrects your thinking, and won&apos;t move on until you get it.
+            Operator trains you to stop asking AI questions — and start building systems that do work for you.
+            No videos. No slides. Just you and an AI that pushes back until you actually get it.
           </p>
 
           {status === 'success' ? (
@@ -256,6 +260,7 @@ export default function Home() {
               You don&apos;t learn to talk to AI by watching someone else do it.
               In Operator, you learn by doing — with an AI that asks questions back,
               corrects your thinking in real time, and doesn&apos;t move on until you get it.
+              Because knowing how AI works doesn&apos;t help you. Building something that works for you does.
             </p>
           </div>
           <div className="rounded-xl p-6 border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
@@ -291,8 +296,11 @@ export default function Home() {
       {/* Pricing */}
       <section className="max-w-5xl mx-auto px-6 py-20">
         <h2 className="text-3xl font-bold mb-3">Three levels. One destination.</h2>
-        <p className="mb-8" style={{ color: 'var(--muted)' }}>
-          You don&apos;t complete Operator. You become one.
+        <p className="mb-2" style={{ color: 'var(--muted)' }}>
+          You don&apos;t complete Operator. You build things with it.
+        </p>
+        <p className="mb-8 text-sm" style={{ color: 'var(--muted)' }}>
+          Recruit is everything you need to start. Agent and Operator build on top — you won&apos;t need to wait.
         </p>
 
         <div className="rounded-xl p-6 border mb-12 max-w-2xl" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
@@ -313,11 +321,11 @@ export default function Home() {
               label: '01',
               name: 'Recruit',
               tagline: 'Use It',
-              desc: 'Zero to daily AI user. Six conversations that turn a skeptic into someone who opens the tool before anything else.',
-              features: ['6 conversation lessons', 'Lesson 1 free today', 'Founding member access', 'Direct channel with build team'],
+              desc: 'Six conversations. You leave with real prompts that replace actual tasks in your job.',
+              features: ['Rewrite real instructions you already use', 'Build prompts that replace actual tasks', 'Turn one repeated task into a reusable system', 'Founding member access'],
               price: '$97',
               full: '$197',
-              badge: 'Open now',
+              badge: 'Founding · then $197',
               badgeStyle: { background: 'var(--accent)', color: '#000' } as React.CSSProperties,
               highlight: false,
               comingSoon: false,
