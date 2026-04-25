@@ -328,10 +328,13 @@ export default function Home() {
               label: '01',
               name: 'Recruit',
               tagline: 'Use It',
-              desc: 'Six conversations. You leave with real prompts that replace actual tasks in your job.',
-              features: ['Rewrite real instructions you already use', 'Build prompts that replace actual tasks', 'Turn one repeated task into a reusable system', 'Founding member access'],
+              desc: 'Stop asking AI weak questions. Start giving it clear instructions.',
+              features: ['Rewrite real prompts you already use', 'Learn how AI actually responds', 'Build outputs that are immediately usable'],
+              outcome: 'You stop wasting AI',
+              note: '',
               price: '$97',
               full: '$197',
+              priceNote: 'Founding cohort · then $197 permanently',
               badge: 'Founding · then $197',
               badgeStyle: { background: 'var(--accent)', color: '#000' } as React.CSSProperties,
               highlight: false,
@@ -342,10 +345,13 @@ export default function Home() {
               label: '02',
               name: 'Agent',
               tagline: 'Build It',
-              desc: 'Workflows, prompt systems, and repeatable processes you can hand to anyone.',
-              features: ['Requires Recruit completion', 'Launches after first cohort', 'Founding price locked now'],
+              desc: 'Turn one-off prompts into repeatable systems.',
+              features: ['Build workflows you can reuse', 'Structure multi-step outputs', 'Start offloading real tasks'],
+              outcome: 'AI starts doing parts of your work',
+              note: '',
               price: '$197',
               full: '$397',
+              priceNote: 'founding cohort · one time',
               badge: 'Coming soon',
               badgeStyle: { background: 'transparent', border: '1px solid var(--border)', color: 'var(--muted)' } as React.CSSProperties,
               highlight: false,
@@ -356,10 +362,13 @@ export default function Home() {
               label: '03',
               name: 'Operator',
               tagline: 'Run It',
-              desc: 'Running AI at scale — across a team, a business, a life.',
-              features: ['Requires Agent completion', 'Small cohort (20 max)', 'Founding price locked now'],
+              desc: 'AI becomes an execution layer — not a tool.',
+              features: ['Design systems that run without constant input', 'Coordinate tasks through AI', 'Eliminate chunks of work entirely'],
+              outcome: 'You remove work from your plate',
+              note: 'This is not about using AI better. It\'s about needing to use it less.',
               price: '$497',
               full: '$997',
+              priceNote: 'founding cohort · one time',
               badge: 'Coming soon',
               badgeStyle: { background: 'transparent', border: '1px solid var(--border)', color: 'var(--muted)' } as React.CSSProperties,
               highlight: false,
@@ -370,10 +379,13 @@ export default function Home() {
               label: null,
               name: 'Full Track',
               tagline: 'All Three',
-              desc: 'Lock in all three tiers at the founding price. Start Recruit today — Agent and Operator unlock as each tier is built. Launch dates communicated to Bundle members first.',
+              desc: 'Lock in all three tiers at the founding price. Start Recruit today — Agent and Operator unlock as each tier is built.',
               features: ['All three tiers included', 'Save $194 vs individual', 'Start Recruit immediately', 'Launch timeline shared with Bundle members first'],
+              outcome: 'AI removes work entirely',
+              note: '',
               price: '$597',
               full: '$1,591',
+              priceNote: 'founding cohort · one time',
               badge: 'Best value',
               badgeStyle: { background: 'var(--accent)', color: '#000' } as React.CSSProperties,
               highlight: true,
@@ -395,17 +407,23 @@ export default function Home() {
               <h3 className="text-xl font-bold mb-0.5">{p.name}</h3>
               <p className="text-xs uppercase tracking-widest mb-3" style={{ color: 'var(--accent)' }}>{p.tagline}</p>
               <p className="text-xs leading-relaxed mb-4" style={{ color: 'var(--muted)' }}>{p.desc}</p>
-              <ul className="space-y-1.5 flex-1 mb-5">
+              <ul className="space-y-1.5 mb-4">
                 {p.features.map(f => (
                   <li key={f} className="flex items-start gap-2 text-xs" style={{ color: 'var(--muted)' }}>
                     <span style={{ color: 'var(--accent)' }}>—</span>{f}
                   </li>
                 ))}
               </ul>
+              {p.note && (
+                <p className="text-xs italic mb-3 leading-relaxed" style={{ color: 'var(--muted)' }}>{p.note}</p>
+              )}
+              {p.outcome && (
+                <p className="text-xs font-semibold mb-4 flex-1" style={{ color: 'var(--accent)' }}>→ {p.outcome}</p>
+              )}
               <div className="mb-4">
                 <span className="text-2xl font-bold">{p.price}</span>
                 <span className="text-xs ml-2 line-through" style={{ color: 'var(--muted)' }}>{p.full}</span>
-                <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>founding cohort · one time</p>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>{p.priceNote}</p>
               </div>
               <button
                 onClick={() => !p.comingSoon && handleCardClick(p.product)}
