@@ -193,13 +193,17 @@ export default function Home() {
             <span style={{ color: 'var(--accent)' }}>You talk to it.</span>
           </h1>
 
-          <p className="text-lg sm:text-xl font-semibold mb-6 leading-snug">
-            You stop asking AI questions. You give it jobs.
+          <p className="text-lg sm:text-xl font-semibold mb-4 leading-snug">
+            Operators don&apos;t stop there. They run it.
           </p>
 
-          <p className="text-lg sm:text-xl mb-10 leading-relaxed" style={{ color: 'var(--muted)' }}>
-            Operator trains you to stop asking AI questions — and start building systems that do work for you.
-            No videos. No slides. Just you and an AI that pushes back until you actually get it.
+          <p className="text-base sm:text-lg mb-4 leading-relaxed">
+            Most people use AI for answers.<br />
+            Operators use AI to eliminate work.
+          </p>
+
+          <p className="text-base sm:text-lg mb-10 leading-relaxed" style={{ color: 'var(--muted)' }}>
+            This trains you to become one. No videos. No slides. Just you and an AI that pushes back until you actually get it.
           </p>
 
           {status === 'success' ? (
