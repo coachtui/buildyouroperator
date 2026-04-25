@@ -194,7 +194,7 @@ export default function Home() {
           </h1>
 
           <p className="text-lg sm:text-xl font-semibold mb-4 leading-snug">
-            Then you build with it. Then you run it.
+            You build with it. You run it.
           </p>
 
           <p className="text-base sm:text-lg mb-4 leading-relaxed">
@@ -203,7 +203,7 @@ export default function Home() {
           </p>
 
           <p className="text-base sm:text-lg mb-10 leading-relaxed" style={{ color: 'var(--muted)' }}>
-            This trains you to become one. No videos. No slides. Just you and an AI that pushes back until you actually get it.
+            This is how you become one.
           </p>
 
           {status === 'success' ? (
@@ -260,6 +260,9 @@ export default function Home() {
               Every other AI course is a video.<br />
               <span style={{ color: 'var(--accent)' }}>This one is a conversation.</span>
             </h2>
+            <p className="text-sm font-semibold mb-3" style={{ color: 'var(--accent)' }}>
+              No videos. No slides.
+            </p>
             <p className="leading-relaxed" style={{ color: 'var(--muted)' }}>
               You don&apos;t learn to talk to AI by watching someone else do it.
               In Operator, you learn by doing — with an AI that asks questions back,
