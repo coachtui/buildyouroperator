@@ -314,9 +314,9 @@ export default function Home() {
           <p className="text-xs tracking-widest uppercase mb-3" style={{ color: 'var(--accent)' }}>How this works</p>
           <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
             Recruit is live. Agent and Operator are next.<br /><br />
-            This isn&apos;t a static course — it&apos;s a living system.<br />
-            Every lesson is continuously refined based on real usage.<br />
-            The version you take today is better than last month&apos;s.<br />
+            This isn&apos;t a static program — it&apos;s a living system.<br />
+            Every conversation is refined based on real usage.<br />
+            The version you run today is better than last month&apos;s.<br />
             Next month&apos;s will be better than today&apos;s.
           </p>
         </div>
