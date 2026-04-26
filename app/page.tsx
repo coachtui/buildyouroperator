@@ -257,17 +257,16 @@ export default function Home() {
         <div className="grid sm:grid-cols-2 gap-12 items-center">
           <div>
             <h2 className="text-3xl font-bold mb-4">
-              Every other AI course is a video.<br />
-              <span style={{ color: 'var(--accent)' }}>This one is a conversation.</span>
+              Most people use AI.<br />
+              <span style={{ color: 'var(--accent)' }}>You&apos;re here to run it.</span>
             </h2>
             <p className="text-sm font-semibold mb-3" style={{ color: 'var(--accent)' }}>
-              No videos. No slides.
+              No videos. No slides. Just real interaction.
             </p>
             <p className="leading-relaxed" style={{ color: 'var(--muted)' }}>
-              You don&apos;t learn to use or run AI by watching someone else do it.
-              In Operator, you learn by doing — with an AI that asks questions back,
-              corrects your thinking in real time, and doesn&apos;t move on until you get it.
-              Because knowing how AI works doesn&apos;t help you. Building something that does work for you does.
+              You don&apos;t learn AI by watching it. You learn by using it — correctly.<br /><br />
+              Operator pushes back, asks questions, and forces clarity until you actually understand what you&apos;re doing.<br /><br />
+              Because knowing what AI is doesn&apos;t change anything. Being able to run it does.
             </p>
           </div>
           <div className="rounded-xl p-6 border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
