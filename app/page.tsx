@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import ThemeToggle from './components/ThemeToggle'
+import DemoChat from './components/DemoChat'
 
 type AnswerValue = 'pass' | 'neutral' | 'fail'
 type Question = {
@@ -299,6 +300,14 @@ export default function Home() {
         <div style={{ borderTop: '1px solid var(--border)' }} />
       </div>
 
+      {/* Inline demo */}
+      <DemoChat />
+
+      {/* Divider */}
+      <div className="max-w-5xl mx-auto px-6">
+        <div style={{ borderTop: '1px solid var(--border)' }} />
+      </div>
+
       {/* Pricing */}
       <section className="max-w-5xl mx-auto px-6 py-20">
         <h2 className="text-3xl font-bold mb-3">Three levels. One destination.</h2>
@@ -444,7 +453,7 @@ export default function Home() {
           <p className="text-sm mb-6" style={{ color: '#ef4444' }}>{checkoutError}</p>
         )}
 
-        <div className="flex items-center gap-3 max-w-lg mb-4">
+        <div id="get-lesson-free" className="flex items-center gap-3 max-w-lg mb-4">
           <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
           <span className="text-xs" style={{ color: 'var(--muted)' }}>not ready to pay? try Lesson 1 free first</span>
           <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
