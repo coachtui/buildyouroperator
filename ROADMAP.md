@@ -63,9 +63,8 @@ model (no real history) — server-side rebuild fixed that too.
 - [x] Per-turn token usage captured from the stream and logged to `chat_usage`
       (one row per user per day: message_count, input_tokens, output_tokens) via
       the atomic `increment_chat_usage()` RPC.
-- [ ] **ACTION NEEDED (you):** run
-      `supabase-migrations/2026-07-25-phase2-usage-tracking.sql` in the Supabase
-      SQL editor — enables the daily cap + token logging.
+- [x] Phase 2 migration applied and verified live 2026-07-25: token row written
+      (525 in / 16 out on turn one), daily cap returns 429 at the limit.
 - [ ] **ACTION NEEDED (you):** set a spend alert in the Anthropic console
       (console.anthropic.com → Settings → Limits) at a number that would annoy you.
 
