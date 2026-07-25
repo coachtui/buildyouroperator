@@ -12,7 +12,7 @@ than it did yesterday?*
 | Phase | Name | Status |
 |-------|------|--------|
 | 1 | Server owns the conversation | **Done** (migration pending — see below) |
-| 2 | Spend controls | Not started |
+| 2 | Spend controls | **Done** (migration + console alert pending — see below) |
 | 3 | Student model (memory) | Not started |
 | 4 | Free flip + launch surface | Not started |
 | 5 | Mastery gating | Not started |
@@ -55,12 +55,27 @@ model (no real history) — server-side rebuild fixed that too.
 
 ## Phase 2 — Spend controls
 
-- [ ] Daily per-user message cap across all lessons.
-- [ ] Global kill switch (env flag checked in chat route).
-- [ ] Anthropic console spend alert.
-- [ ] Per-turn token usage logged onto `lesson_sessions`.
+- [x] Daily per-user message cap across all lessons: `DAILY_MESSAGE_LIMIT` env,
+      default 100. Fails open (with a logged error) until the migration runs, since
+      per-lesson limits still bound each conversation.
+- [x] Global kill switch: set `CHAT_PAUSED=true` and redeploy — chat returns 503
+      with a friendly message before any Anthropic spend, even pre-auth.
+- [x] Per-turn token usage captured from the stream and logged to `chat_usage`
+      (one row per user per day: message_count, input_tokens, output_tokens) via
+      the atomic `increment_chat_usage()` RPC.
+- [ ] **ACTION NEEDED (you):** run
+      `supabase-migrations/2026-07-25-phase2-usage-tracking.sql` in the Supabase
+      SQL editor — enables the daily cap + token logging.
+- [ ] **ACTION NEEDED (you):** set a spend alert in the Anthropic console
+      (console.anthropic.com → Settings → Limits) at a number that would annoy you.
 
-**Exit:** worst-case daily bill is a known number; chat can be paused instantly.
+**Exit:** worst-case daily bill ≈ users × DAILY_MESSAGE_LIMIT × ~$0.03/turn; chat
+can be paused with one env flip. Cost per user per day is a one-row query:
+`select * from chat_usage order by day desc`.
+
+Verified 2026-07-25: kill switch returns 503 on both demo and user paths; full
+Phase 1 regression suite passes with usage tracking in place; pre-migration
+fail-open confirmed with clean log lines.
 
 ## Phase 3 — Student model (memory)
 

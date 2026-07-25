@@ -14,6 +14,9 @@ const MESSAGE_LIMIT_PAID = 50
 const MESSAGE_LIMIT_FREE = 15
 const MESSAGE_LIMIT_DEMO = 8
 const MAX_MESSAGE_CHARS = 2000
+// Spend controls: bounds worst-case per-user daily cost regardless of per-lesson limits.
+const DAILY_MESSAGE_LIMIT = parseInt(process.env.DAILY_MESSAGE_LIMIT ?? '100')
+const PAUSED_MESSAGE = `Lessons are paused for a moment while we work on the system. Check back shortly — your progress is saved.`
 // Demo mode is stateless (no DB user), so it accepts client history — bounded hard.
 const DEMO_MAX_HISTORY_ENTRIES = 24
 const DEMO_MAX_TOTAL_CHARS = 20000
@@ -62,10 +65,15 @@ function textResponse(text: string, status = 200) {
   })
 }
 
+interface TokenUsage {
+  inputTokens: number
+  outputTokens: number
+}
+
 function streamLesson(
   systemPrompt: string,
   history: ChatMessage[],
-  onComplete?: (assistantText: string) => Promise<void>
+  onComplete?: (assistantText: string, usage: TokenUsage) => Promise<void>
 ) {
   const stream = client.messages.stream({
     model: MODEL,
@@ -75,32 +83,37 @@ function streamLesson(
   })
 
   const encoder = new TextEncoder()
-  let resolveDone!: (text: string) => void
-  const done = new Promise<string>(r => { resolveDone = r })
+  let resolveDone!: (result: { text: string; usage: TokenUsage }) => void
+  const done = new Promise<{ text: string; usage: TokenUsage }>(r => { resolveDone = r })
 
   const readable = new ReadableStream({
     async start(controller) {
       const chunks: string[] = []
+      const usage: TokenUsage = { inputTokens: 0, outputTokens: 0 }
       try {
         for await (const chunk of stream) {
           if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
             chunks.push(chunk.delta.text)
             controller.enqueue(encoder.encode(chunk.delta.text))
+          } else if (chunk.type === 'message_start') {
+            usage.inputTokens = chunk.message.usage.input_tokens
+          } else if (chunk.type === 'message_delta' && chunk.usage) {
+            usage.outputTokens = chunk.usage.output_tokens
           }
         }
       } catch {
         // Partial output still gets persisted below; the client shows a retry message.
       } finally {
         controller.close()
-        resolveDone(chunks.join(''))
+        resolveDone({ text: chunks.join(''), usage })
       }
     },
   })
 
   if (onComplete) {
     after(async () => {
-      const assistantText = await done
-      if (assistantText) await onComplete(assistantText)
+      const { text, usage } = await done
+      if (text) await onComplete(text, usage)
     })
   }
 
@@ -166,6 +179,11 @@ function handleDemo(rawHistory: unknown, message: unknown, systemPrompt: string)
 }
 
 export async function POST(req: NextRequest) {
+  // Kill switch: set CHAT_PAUSED=true (and redeploy) to stop all Anthropic spend.
+  if (process.env.CHAT_PAUSED === 'true') {
+    return textResponse(PAUSED_MESSAGE, 503)
+  }
+
   const body = await req.json().catch(() => null)
   if (!body) return textResponse('Bad request', 400)
 
@@ -205,6 +223,24 @@ export async function POST(req: NextRequest) {
   const maxLesson = isPaid ? 6 : 1
   if (lessonNumber > maxLesson) {
     return textResponse('Upgrade required', 403)
+  }
+
+  // Daily cap across all lessons. Fails open if the chat_usage table isn't
+  // migrated yet — per-lesson limits still bound each conversation.
+  const today = new Date().toISOString().slice(0, 10)
+  const { data: usageRow, error: usageError } = await supabase
+    .from('chat_usage')
+    .select('message_count')
+    .eq('user_id', user.id)
+    .eq('day', today)
+    .maybeSingle()
+  if (usageError) {
+    console.error('chat_usage read failed (run phase2 migration?):', usageError.message)
+  } else if ((usageRow?.message_count ?? 0) >= DAILY_MESSAGE_LIMIT) {
+    return textResponse(
+      `That's a full day of lessons — seriously. Come back tomorrow and pick up where you left off. Your progress is saved.`,
+      429
+    )
   }
 
   // Server-owned history: the client never supplies the conversation.
@@ -257,7 +293,17 @@ export async function POST(req: NextRequest) {
 
   const existingSessionId = existingSession?.id ?? null
 
-  return streamLesson(systemPrompt, chatHistory, async assistantText => {
+  return streamLesson(systemPrompt, chatHistory, async (assistantText, usage) => {
+    const { error: usageRpcError } = await supabase.rpc('increment_chat_usage', {
+      p_user_id: user.id,
+      p_messages: 1,
+      p_input_tokens: usage.inputTokens,
+      p_output_tokens: usage.outputTokens,
+    })
+    if (usageRpcError) {
+      console.error('chat_usage increment failed (run phase2 migration?):', usageRpcError.message)
+    }
+
     const fullMessages = [...chatHistory, { role: 'assistant', content: assistantText }]
     if (existingSessionId) {
       const { error } = await supabase
