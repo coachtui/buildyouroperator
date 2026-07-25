@@ -6,6 +6,7 @@ export async function GET() {
   const token = await new SignJWT({
     email: 'preview@buildyouroperator.com',
     tier: 'recruit',
+    demo: true,
   })
     .setProtectedHeader({ alg: 'HS256' })
     .setExpirationTime('7d')

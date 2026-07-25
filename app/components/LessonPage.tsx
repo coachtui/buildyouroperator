@@ -15,23 +15,6 @@ interface LessonConfig {
   title: string
 }
 
-function storageKey(token: string, lesson: number) {
-  return `operator_lesson${lesson}_${token.slice(-12)}`
-}
-
-function loadSession(token: string, lesson: number): { messages: Message[]; started: boolean } | null {
-  try {
-    const raw = localStorage.getItem(storageKey(token, lesson))
-    return raw ? JSON.parse(raw) : null
-  } catch { return null }
-}
-
-function saveSession(token: string, lesson: number, messages: Message[], started: boolean) {
-  try {
-    localStorage.setItem(storageKey(token, lesson), JSON.stringify({ messages, started }))
-  } catch {}
-}
-
 const SYSTEM_MESSAGES = [
   'Begin the lesson.',
   'The student is returning.',
@@ -82,7 +65,7 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
       if (lesson.number > (authData.maxLesson ?? 6)) { setAuthorized(false); return }
       setAuthorized(true)
 
-      // Try Supabase first, fall back to localStorage
+      // The server owns conversation history — hydrate from the DB.
       const dbRes = await fetch(`/api/session?token=${encodeURIComponent(token)}&lesson=${lesson.number}`)
       const dbData = await dbRes.json()
 
@@ -90,13 +73,6 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
         setMessages(dbData.messages)
         setStarted(true)
         setResuming(true)
-      } else {
-        const saved = loadSession(token, lesson.number)
-        if (saved && saved.messages.length > 0) {
-          setMessages(saved.messages)
-          setStarted(true)
-          setResuming(true)
-        }
       }
     })
   }, [token, lesson.number])
@@ -104,10 +80,6 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
-
-  useEffect(() => {
-    if (token && started) saveSession(token, lesson.number, messages, started)
-  }, [messages, started, token, lesson.number])
 
   useEffect(() => {
     const ta = inputRef.current
@@ -119,32 +91,30 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
   useEffect(() => {
     if (!resuming || messages.length === 0) return
     setResuming(false)
-    const lastGojo = [...messages].reverse().find(m => m.role === 'assistant')
-    const checkpoint = lastGojo?.content ?? 'the previous session'
-    const resumeMsg: Message = {
-      role: 'user',
-      content: `The student is returning. Your last message to them was: "${checkpoint.slice(0, 300)}". Welcome them back in one sentence, summarize where they left off, and ask if they have questions before continuing.`
-    }
     setLoading(true)
-    streamResponse([resumeMsg]).then(() => setLoading(false))
+    streamResponse({ action: 'resume' }).then(() => setLoading(false))
   }, [resuming]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function startLesson() {
     setStarted(true)
     setLoading(true)
-    await streamResponse([{ role: 'user', content: 'Begin the lesson.' }])
+    await streamResponse({ action: 'start' })
     setLoading(false)
   }
 
-  async function streamResponse(payload: Message[]) {
+  // The server rebuilds conversation history from the DB — only the newest
+  // user message (or an action) crosses the wire.
+  async function streamResponse(payload: { action: 'start' | 'resume' | 'message'; message?: string }) {
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: payload, lesson: String(lesson.number), token }),
+      body: JSON.stringify({ ...payload, lesson: String(lesson.number), token }),
     })
 
     if (!res.ok || !res.body) {
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Something went wrong on my end. Give it a moment and try again.' }])
+      const fallback = 'Something went wrong on my end. Give it a moment and try again.'
+      const text = res.body ? await res.text().catch(() => '') : ''
+      setMessages(prev => [...prev, { role: 'assistant', content: text || fallback }])
       return
     }
 
@@ -168,12 +138,11 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
 
   async function handleSend() {
     if (!input.trim() || loading) return
-    const userMessage: Message = { role: 'user', content: input.trim() }
-    const newMessages = [...messages, userMessage]
-    setMessages(newMessages)
+    const text = input.trim()
+    setMessages(prev => [...prev, { role: 'user', content: text }])
     setInput('')
     setLoading(true)
-    await streamResponse(newMessages)
+    await streamResponse({ action: 'message', message: text })
     setLoading(false)
     inputRef.current?.focus()
   }

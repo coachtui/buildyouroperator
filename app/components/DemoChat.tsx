@@ -35,12 +35,14 @@ export default function DemoChat() {
     ta.style.height = Math.min(ta.scrollHeight, 100) + 'px'
   }, [input])
 
-  async function streamResponse(payload: Message[]) {
+  // The demo is stateless (shared token, no account), so it sends its short
+  // history along — the server validates and bounds it hard.
+  async function streamResponse(payload: { action: 'start' | 'message'; message?: string; history: Message[] }) {
     if (!token) return
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: payload, lesson: '1', token }),
+      body: JSON.stringify({ ...payload, lesson: '1', token }),
     })
 
     if (res.status === 429) {
@@ -74,18 +76,18 @@ export default function DemoChat() {
     if (!token) return
     setStarted(true)
     setLoading(true)
-    await streamResponse([{ role: 'user', content: 'Begin the lesson.' }])
+    await streamResponse({ action: 'start', history: [] })
     setLoading(false)
   }
 
   async function handleSend() {
     if (!input.trim() || loading || !token) return
-    const userMessage: Message = { role: 'user', content: input.trim() }
-    const newMessages = [...messages, userMessage]
-    setMessages(newMessages)
+    const text = input.trim()
+    const priorMessages = messages
+    setMessages(prev => [...prev, { role: 'user', content: text }])
     setInput('')
     setLoading(true)
-    await streamResponse(newMessages)
+    await streamResponse({ action: 'message', message: text, history: priorMessages })
     setLoading(false)
     inputRef.current?.focus()
   }

@@ -36,8 +36,11 @@ export async function POST(req: NextRequest) {
         { onConflict: 'email', ignoreDuplicates: false }
       )
 
+    // The users row is the source of truth for chat access — signup must not
+    // succeed without it.
     if (dbError) {
       console.error('Supabase error:', dbError)
+      return NextResponse.json({ error: 'Failed to sign up. Try again.' }, { status: 500 })
     }
     const lesson1Url = `${BASE_URL}/recruit/1?token=${token}`
 

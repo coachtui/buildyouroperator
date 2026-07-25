@@ -13,7 +13,8 @@ create table if not exists lesson_sessions (
   lesson_number int not null,
   messages jsonb not null default '[]',
   completed_at timestamptz,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  unique (user_id, lesson_number)
 );
 
 create index if not exists lesson_sessions_user_id_idx on lesson_sessions(user_id);
