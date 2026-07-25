@@ -3,7 +3,13 @@ import { NextRequest } from 'next/server'
 import { after } from 'next/server'
 import { jwtVerify, JWTPayload } from 'jose'
 import { supabase } from '@/app/lib/supabase'
-import { composeLessonPrompt } from '@/app/lib/lesson-prompts'
+import { composeLessonPrompt, PromptContext } from '@/app/lib/lesson-prompts'
+import {
+  StudentProfile,
+  LessonAnalysisRow,
+  formatStudentProfile,
+  formatPriorAnalysis,
+} from '@/app/lib/student-profile'
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -200,19 +206,19 @@ export async function POST(req: NextRequest) {
 
   const lessonKey = lesson && RECRUIT_LESSONS.has(lesson) ? lesson : '1'
   const lessonNumber = parseInt(lessonKey)
-  const systemPrompt = composeLessonPrompt(lessonKey)
-  if (!systemPrompt) return textResponse('Unknown lesson', 400)
+  if (!composeLessonPrompt(lessonKey)) return textResponse('Unknown lesson', 400)
 
   // Demo tokens never touch the DB — bounded stateless path, Lesson 1 only.
   if (payload.demo === true) {
     return handleDemo(history, message, composeLessonPrompt('1')!)
   }
 
-  // DB is authoritative for access level — JWT only identifies the user
+  // DB is authoritative for access level — JWT only identifies the user.
+  // select('*') so the route keeps working before the student_profile migration.
   const email = payload.email as string
   const { data: user } = await supabase
     .from('users')
-    .select('id, tier')
+    .select('*')
     .eq('email', email)
     .single()
 
@@ -244,12 +250,34 @@ export async function POST(req: NextRequest) {
   }
 
   // Server-owned history: the client never supplies the conversation.
-  const { data: existingSession } = await supabase
-    .from('lesson_sessions')
-    .select('id, messages')
-    .eq('user_id', user.id)
-    .eq('lesson_number', lessonNumber)
-    .single()
+  const [{ data: existingSession }, priorAnalysisResult] = await Promise.all([
+    supabase
+      .from('lesson_sessions')
+      .select('id, messages')
+      .eq('user_id', user.id)
+      .eq('lesson_number', lessonNumber)
+      .single(),
+    lessonNumber > 1
+      ? supabase
+          .from('lesson_analyses')
+          .select('lesson_number, sentiment, struggled_with, what_clicked, summary')
+          .eq('user_id', user.id)
+          .eq('lesson_number', lessonNumber - 1)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+  ])
+
+  // Cross-lesson memory: profile + previous lesson's analysis shape the prompt.
+  const promptCtx: PromptContext = {}
+  const profile = (user.student_profile ?? null) as StudentProfile | null
+  if (profile) {
+    const formatted = formatStudentProfile(profile)
+    if (formatted) promptCtx.studentProfile = formatted
+  }
+  const priorAnalysis = priorAnalysisResult.data as LessonAnalysisRow | null
+  if (priorAnalysis) promptCtx.priorAnalysis = formatPriorAnalysis(priorAnalysis)
+
+  const systemPrompt = composeLessonPrompt(lessonKey, promptCtx)!
 
   const storedMessages: ChatMessage[] = Array.isArray(existingSession?.messages)
     ? (existingSession!.messages as ChatMessage[])

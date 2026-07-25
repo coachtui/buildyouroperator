@@ -13,7 +13,7 @@ than it did yesterday?*
 |-------|------|--------|
 | 1 | Server owns the conversation | **Done** (migration pending — see below) |
 | 2 | Spend controls | **Done** (migration + console alert pending — see below) |
-| 3 | Student model (memory) | Not started |
+| 3 | Student model (memory) | **Done** (migration pending — see below) |
 | 4 | Free flip + launch surface | Not started |
 | 5 | Mastery gating | Not started |
 | 6 | The loops (digest, smart re-engage, notebook) | Not started |
@@ -78,15 +78,29 @@ fail-open confirmed with clean log lines.
 
 ## Phase 3 — Student model (memory)
 
-- [ ] On lesson completion, Haiku extraction updates `users.student_profile` (jsonb):
-      job, chosen tool, skill level, prompts built, misconceptions, tone preference.
-- [ ] Profile + previous lesson's `lesson_analyses` row composed into every
-      subsequent lesson's system prompt.
-- [ ] Lessons 3/4 no longer re-ask what the student does for work.
+- [x] On lesson completion, Haiku extraction (`app/lib/student-profile.ts`) merges
+      the lesson transcript into `users.student_profile` (jsonb): job, chosen tool,
+      skill level, goals, prompts built, misconceptions, wins, notes. Runs alongside
+      session analysis in `/api/analyze-lesson` (Promise.allSettled — either failing
+      doesn't block the other). Fails open pre-migration.
+- [x] Profile + previous lesson's `lesson_analyses` row composed into every
+      subsequent lesson's system prompt via the Phase 1 `PromptContext` slots.
+- [x] Scripted openers defer to memory: when the profile is present, Gojo is told to
+      skip questions it already knows the answer to and reference what it remembers.
+- [x] Bonus: `complete-lesson`'s analysis dispatch moved into `after()` (was
+      fire-and-forget, killable on serverless) with request-origin base URL fallback.
+- [ ] **ACTION NEEDED (you):** run
+      `supabase-migrations/2026-07-25-phase3-student-profile.sql` in the Supabase
+      SQL editor — adds `users.student_profile` (and puts `lesson_analyses` under
+      source control for fresh environments).
 
-**Exit:** finish Lesson 1 as a test user, open Lesson 2 — Gojo demonstrably knows
-who you are and what you struggled with. Ship this BEFORE public launch: memory is
-the differentiator; don't burn first impressions on the amnesiac version.
+**Exit verified 2026-07-25** (pre-migration test, throwaway user): completed Lesson 1
+as a Hilo landscaping business owner with a search-engine misconception → Lesson 2
+opened with "Last time, something clicked for you — the idea that AI is less like a
+search engine and more like a well-read employee waiting for instructions." Profile
+extraction parsed and attempted its write (blocked only by the missing column).
+Re-verify the profile half after the migration. Ship this BEFORE public launch:
+memory is the differentiator.
 
 ## Phase 4 — Free flip + launch surface
 

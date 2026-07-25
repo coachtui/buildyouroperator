@@ -4,6 +4,7 @@ create table if not exists users (
   tier text not null default 'recruit',
   token text,
   current_lesson int not null default 1,
+  student_profile jsonb,
   created_at timestamptz not null default now()
 );
 
@@ -18,6 +19,20 @@ create table if not exists lesson_sessions (
 );
 
 create index if not exists lesson_sessions_user_id_idx on lesson_sessions(user_id);
+
+-- Per-lesson session analysis (sentiment, struggles, what clicked) — written by /api/analyze-lesson
+create table if not exists lesson_analyses (
+  user_id uuid not null references users(id) on delete cascade,
+  lesson_number int not null,
+  sentiment text,
+  struggled_with text,
+  what_clicked text,
+  gaps_mentioned text,
+  summary text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  primary key (user_id, lesson_number)
+);
 
 -- Per-user per-day usage (spend controls) — incremented by increment_chat_usage()
 create table if not exists chat_usage (
@@ -51,7 +66,9 @@ $$;
 alter table users enable row level security;
 alter table lesson_sessions enable row level security;
 alter table chat_usage enable row level security;
+alter table lesson_analyses enable row level security;
 
 create policy "deny_anon_users" on users for all using (false);
 create policy "deny_anon_sessions" on lesson_sessions for all using (false);
 create policy "deny_anon_chat_usage" on chat_usage for all using (false);
+create policy "deny_anon_lesson_analyses" on lesson_analyses for all using (false);

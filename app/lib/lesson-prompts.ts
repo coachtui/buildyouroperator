@@ -239,10 +239,10 @@ export function composeLessonPrompt(lesson: string, ctx: PromptContext = {}): st
   ]
 
   if (ctx.studentProfile) {
-    sections.push(`## What you already know about this student\n${ctx.studentProfile}\nUse this naturally — don't recite it back. Never re-ask things you already know.`)
+    sections.push(`## What you already know about this student\n${ctx.studentProfile}\n\nYou have taught this student before — act like it. Use this naturally; don't recite it back. Never re-ask something listed above. If this lesson's scripted opening asks for information you already have (their job, their tool, what they've tried), skip that part of the question — instead, show them you remember ("Last time you told me you're a...") and confirm before building on it.`)
   }
   if (ctx.priorAnalysis) {
-    sections.push(`## Their previous lesson\n${ctx.priorAnalysis}\nCheck that shaky ground early, without making it feel like a test.`)
+    sections.push(`## Their previous lesson\n${ctx.priorAnalysis}\n\nThis is not their first conversation with you. Open like a teacher who remembers yesterday's class: one short line connecting to where they left off, then this lesson's opening question. If they struggled with something last time, check it stuck early — without making it feel like a test.`)
   }
 
   sections.push(mod.body)

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { after } from 'next/server'
 import { jwtVerify } from 'jose'
 import { supabase } from '@/app/lib/supabase'
 
@@ -38,13 +39,16 @@ export async function POST(req: NextRequest) {
         .eq('id', user.id),
     ])
 
-    // Fire analysis in a separate invocation — non-blocking
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? `https://${process.env.VERCEL_URL}`
-    fetch(`${baseUrl}/api/analyze-lesson`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: user.id, lesson_number: lessonNumber }),
-    }).catch(() => {})
+    // Analysis + profile extraction run in a separate invocation, dispatched
+    // after the response so serverless can't kill the request mid-send.
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? req.nextUrl.origin
+    after(async () => {
+      await fetch(`${baseUrl}/api/analyze-lesson`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: user.id, lesson_number: lessonNumber }),
+      }).catch(err => console.error('analyze-lesson dispatch failed:', err))
+    })
 
     return NextResponse.json({ ok: true })
   } catch {
