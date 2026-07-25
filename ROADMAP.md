@@ -13,7 +13,7 @@ than it did yesterday?*
 |-------|------|--------|
 | 1 | Server owns the conversation | **Done** (migration pending — see below) |
 | 2 | Spend controls | **Done** (migration + console alert pending — see below) |
-| 3 | Student model (memory) | **Done** (migration pending — see below) |
+| 3 | Student model (memory) | **Done** — verified live |
 | 4 | Free flip + launch surface | Not started |
 | 5 | Mastery gating | Not started |
 | 6 | The loops (digest, smart re-engage, notebook) | Not started |
@@ -89,10 +89,11 @@ fail-open confirmed with clean log lines.
       skip questions it already knows the answer to and reference what it remembers.
 - [x] Bonus: `complete-lesson`'s analysis dispatch moved into `after()` (was
       fire-and-forget, killable on serverless) with request-origin base URL fallback.
-- [ ] **ACTION NEEDED (you):** run
-      `supabase-migrations/2026-07-25-phase3-student-profile.sql` in the Supabase
-      SQL editor — adds `users.student_profile` (and puts `lesson_analyses` under
-      source control for fresh environments).
+- [x] Phase 3 migration applied; full loop verified 2026-07-25. Profile extracted
+      job/goals/skill/misconceptions/tone notes from one lesson; Lesson 3's scripted
+      "what do you do for work?" opener became "Last time you told me you run a
+      landscaping business in Hilo — so I already know what you're working with."
+      followed by only the question it couldn't answer from memory.
 
 **Exit verified 2026-07-25** (pre-migration test, throwaway user): completed Lesson 1
 as a Hilo landscaping business owner with a search-engine misconception → Lesson 2
