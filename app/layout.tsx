@@ -45,6 +45,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      // The inline script below sets data-theme before hydration on purpose,
+      // so React's attribute mismatch warning here is expected noise.
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>

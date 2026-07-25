@@ -195,7 +195,7 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
             <p className="text-xs tracking-widest uppercase mb-4" style={{ color: 'var(--accent)' }}>Operator</p>
             <h1 className="text-2xl font-bold mb-4">Your link expired</h1>
             <p className="mb-8 leading-relaxed" style={{ color: 'var(--muted)' }}>
-              Waitlist links expire after 30 days. Enter your email and we&apos;ll send a fresh one.
+              Access links expire after 30 days. Enter the email you signed up with and we&apos;ll send a fresh one.
             </p>
             {resendStatus === 'sent' ? (
               <p className="text-sm" style={{ color: 'var(--accent)' }}>Check your inbox — a new link is on the way.</p>

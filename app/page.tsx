@@ -19,6 +19,8 @@ export default function Home() {
   const [message, setMessage] = useState('')
   const [resendEmail, setResendEmail] = useState('')
   const [resendStatus, setResendStatus] = useState<'idle' | 'loading' | 'sent'>('idle')
+  const [resendMessage, setResendMessage] = useState('')
+  const [showResend, setShowResend] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -219,60 +221,77 @@ export default function Home() {
           </p>
         </div>
 
-        <div id="get-lesson-free" className="flex items-center gap-3 max-w-lg mb-4">
-          <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
-          <span className="text-xs" style={{ color: 'var(--muted)' }}>ready when you are</span>
-          <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
-        </div>
-
-        {signupForm('outline')}
-      </section>
-
-      {/* Lost your link */}
-      <section className="max-w-5xl mx-auto px-6 pb-16">
-        <div className="flex items-center gap-3 max-w-lg mb-4">
-          <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
-          <span className="text-xs whitespace-nowrap" style={{ color: 'var(--muted)' }}>already signed up?</span>
-          <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
-        </div>
-        {resendStatus === 'sent' ? (
-          <p className="text-sm max-w-lg" style={{ color: 'var(--muted)' }}>
-            If you&apos;re on the list, your link is on the way.
+        {/* The close — one primary action */}
+        <div id="get-lesson-free">
+          <h3 className="text-2xl font-bold mb-2">Start with one conversation.</h3>
+          <p className="text-sm mb-6" style={{ color: 'var(--muted)' }}>
+            Six lessons, free. No card, no catch. Your private link arrives by email.
           </p>
-        ) : (
-          <form
-            onSubmit={async e => {
-              e.preventDefault()
-              if (!resendEmail) return
-              setResendStatus('loading')
-              await fetch('/api/resend-link', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: resendEmail }),
-              })
-              setResendStatus('sent')
-            }}
-            className="flex flex-col sm:flex-row gap-3 max-w-lg"
-          >
-            <input
-              type="email"
-              required
-              value={resendEmail}
-              onChange={e => setResendEmail(e.target.value)}
-              placeholder="your@email.com"
-              className="flex-1 px-4 py-3 rounded-lg text-sm outline-none border"
-              style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
-            />
-            <button
-              type="submit"
-              disabled={resendStatus === 'loading'}
-              className="px-6 py-3 rounded-lg text-sm font-semibold transition-opacity disabled:opacity-60 hover:opacity-80 cursor-pointer border"
-              style={{ borderColor: 'var(--border)', color: 'var(--muted)', background: 'transparent' }}
-            >
-              {resendStatus === 'loading' ? 'Sending...' : 'Resend my link'}
-            </button>
-          </form>
-        )}
+
+          {signupForm('solid')}
+
+          {/* Returning students: rare action, revealed on demand */}
+          <div className="mt-8 max-w-lg">
+            {resendStatus === 'sent' ? (
+              <p className="text-sm" style={{ color: 'var(--muted)' }}>
+                {resendMessage || "If you're on the list, your link is on the way."}
+              </p>
+            ) : !showResend ? (
+              <button
+                onClick={() => setShowResend(true)}
+                className="text-xs cursor-pointer hover:opacity-70 transition-opacity"
+                style={{ color: 'var(--muted)', textDecoration: 'underline', textUnderlineOffset: '3px' }}
+              >
+                Already signed up? Resend your link
+              </button>
+            ) : (
+              <div>
+                <p className="text-xs mb-3" style={{ color: 'var(--muted)' }}>
+                  Enter the email you signed up with and we&apos;ll send your link again.
+                </p>
+                <form
+                  onSubmit={async e => {
+                    e.preventDefault()
+                    if (!resendEmail) return
+                    setResendStatus('loading')
+                    try {
+                      const res = await fetch('/api/resend-link', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: resendEmail }),
+                      })
+                      const data = await res.json()
+                      setResendMessage(data.message ?? '')
+                    } catch {
+                      setResendMessage('')
+                    }
+                    setResendStatus('sent')
+                  }}
+                  className="flex flex-col sm:flex-row gap-3"
+                >
+                  <input
+                    type="email"
+                    required
+                    autoFocus
+                    value={resendEmail}
+                    onChange={e => setResendEmail(e.target.value)}
+                    placeholder="the email you signed up with"
+                    className="flex-1 px-4 py-3 rounded-lg text-sm outline-none border"
+                    style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
+                  />
+                  <button
+                    type="submit"
+                    disabled={resendStatus === 'loading'}
+                    className="px-6 py-3 rounded-lg text-sm font-semibold transition-opacity disabled:opacity-60 hover:opacity-80 cursor-pointer border"
+                    style={{ borderColor: 'var(--border)', color: 'var(--muted)', background: 'transparent' }}
+                  >
+                    {resendStatus === 'loading' ? 'Sending...' : 'Resend my link'}
+                  </button>
+                </form>
+              </div>
+            )}
+          </div>
+        </div>
       </section>
 
       {/* Footer */}

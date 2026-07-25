@@ -25,15 +25,19 @@ export async function POST(req: NextRequest) {
 
   const normalized = email.toLowerCase().trim()
 
+  // Identical response whether or not the email exists — no account enumeration.
+  // It also has to give a new visitor who used the wrong form somewhere to go.
+  const SAFE_MESSAGE =
+    "If you're on the list, your link is on the way. If not, sign up above — it's free."
+
   const { data: user } = await supabase
     .from('users')
-    .select('id, tier')
+    .select('id, tier, current_lesson')
     .eq('email', normalized)
     .single()
 
-  // Always return success — don't reveal whether email exists
   if (!user) {
-    return NextResponse.json({ message: "If you're on the list, your link is on the way." })
+    return NextResponse.json({ message: SAFE_MESSAGE })
   }
 
   const token = await generateAccessToken(normalized, user.tier)
@@ -43,7 +47,9 @@ export async function POST(req: NextRequest) {
     .update({ token })
     .eq('id', user.id)
 
-  const lesson1Url = `${BASE_URL}/recruit/1?token=${token}`
+  // Send them back to where they actually stopped, not always Lesson 1.
+  const resumeLesson = Math.min(Math.max(user.current_lesson ?? 1, 1), 6)
+  const resumeUrl = `${BASE_URL}/recruit/${resumeLesson}?token=${token}`
 
   await resend.emails.send({
     from: FROM,
@@ -56,8 +62,8 @@ export async function POST(req: NextRequest) {
         <p style="color:#888;line-height:1.7;margin-bottom:32px;">
           You requested your Operator access link. Use it to pick up where you left off — your progress is saved.
         </p>
-        <a href="${lesson1Url}" style="display:inline-block;background:#c9973a;color:#000;font-weight:600;font-size:14px;padding:14px 28px;border-radius:8px;text-decoration:none;margin-bottom:32px;">
-          Continue Lesson 1 →
+        <a href="${resumeUrl}" style="display:inline-block;background:#c9973a;color:#000;font-weight:600;font-size:14px;padding:14px 28px;border-radius:8px;text-decoration:none;margin-bottom:32px;">
+          ${resumeLesson > 1 ? `Continue Lesson ${resumeLesson}` : 'Start Lesson 1'} →
         </a>
         <div style="border-top:1px solid #1a1a1a;padding-top:24px;margin-top:24px;">
           <p style="color:#555;font-size:12px;">Gojo · Operator by AIGA LLC</p>
@@ -67,5 +73,5 @@ export async function POST(req: NextRequest) {
     `,
   })
 
-  return NextResponse.json({ message: "If you're on the list, your link is on the way." })
+  return NextResponse.json({ message: SAFE_MESSAGE })
 }
