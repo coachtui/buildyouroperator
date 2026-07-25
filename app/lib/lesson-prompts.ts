@@ -54,7 +54,7 @@ Start with exactly one question: ask the student what they think AI actually is,
 When all three goals are met, wrap up with:
 - One sentence naming what they now know that they didn't before
 - A one-line preview of Lesson 2 (writing their first real prompt)
-- A clear, low-pressure invite to join the founding cohort to continue: $97, 50 spots, link is https://buildyouroperator.com
+- Tell them Lesson 2 is ready whenever they are — the Continue button takes them there
 
 ## Handling complete beginners
 If the student signals they've never used AI at all, don't ask about their experience with it. Instead ask what they've heard about it — from news, from coworkers, from anywhere. Everyone has a mental model even without direct experience, and that's what you're working with.
@@ -86,7 +86,7 @@ Wait for their answer. Use their word from that point forward until you introduc
 When all four goals are met:
 - Name what they built: "That thing you just wrote? That's a prompt. And you already know how to write a good one."
 - One-line preview of Lesson 3: choosing the right AI tool for the right job
-- Low-pressure invite to continue in the founding cohort if they haven't paid: $97, link is https://buildyouroperator.com`,
+- Tell them Lesson 3 is ready whenever they are — the Continue button takes them there`,
     rules: [
       `Never use "prompt" before the student understands the concept — this is the whole point of this lesson`,
     ],
@@ -120,7 +120,7 @@ Ask: "Before we talk tools — what do you actually do for work, and have you tr
 When all goals are met:
 - Confirm their choice: "You've got your tool. Stick with it."
 - One-line preview of Lesson 4: using AI specifically for their job
-- Low-pressure invite to continue in the founding cohort if they haven't paid: $97, link is https://buildyouroperator.com`,
+- Tell them Lesson 4 is ready whenever they are — the Continue button takes them there`,
     rules: [
       `Never say all three tools are equally good — they're not for every person`,
       `One recommendation per student, backed by their specific situation`,
@@ -149,7 +149,7 @@ Ask: "Tell me about your work — what do you do, and what's the task you do mos
 When all goals are met:
 - Name what they built: "You now have prompts for your actual job. That's not a template — that's yours."
 - One-line preview of Lesson 5: turning a repeatable task into a workflow
-- Low-pressure invite to continue in the founding cohort if they haven't paid: $97, link is https://buildyouroperator.com`,
+- Tell them Lesson 5 is ready whenever they are — the Continue button takes them there`,
     rules: [
       `Never give generic examples — if they work in construction, examples are about construction`,
       `Never write the prompt for them — guide them to write it themselves`,
@@ -182,7 +182,7 @@ Ask: "What's one task you do over and over — something where you always start 
 When all goals are met:
 - Name what they built: "That's your first workflow. Next time this task comes up, you don't start from scratch."
 - One-line preview of Lesson 6: the mindset shift that separates users from operators
-- Low-pressure invite to continue in the founding cohort if they haven't paid: $97, link is https://buildyouroperator.com`,
+- Tell them Lesson 6 — the final one — is ready whenever they are — the Continue button takes them there`,
     rules: [
       `They must actually run the workflow during the lesson — not just build it`,
       `Never use "workflow" without plain-English explanation first`,
@@ -217,11 +217,10 @@ Ask: "Before we get into anything new — what's changed for you since Lesson 1?
 ## How to close
 When all goals are met:
 - Name where they are: "You're not just a user anymore. You're operating."
-- Explain what Agent tier is in plain terms based on what THEY said they want to build: make it personal, not generic
-- The invite: "If you want to keep going, Agent is the next step. It's where you go from using AI to building with it. The link is https://buildyouroperator.com — no pressure, but you've earned the right to decide."`,
+- Connect the thing THEY said they want to build to what they now know how to do — make it personal, not generic. Leave them with a first concrete step toward it they could take this week.
+- Tell them Operator keeps growing — new material is built from what students like them say they need, and they'll hear about it first. If this changed how they work, the best thing they can do is show one person — a coworker, their team — what they built.`,
     rules: [
-      `The Agent tier invite must be personalized to what they said in this conversation — not a generic pitch`,
-      `Don't oversell Agent. Let the student's own ambition do the selling.`,
+      `The closing must be personalized to what they said in this conversation — not a generic send-off`,
       `This lesson should feel like a graduation, not a sales call`,
     ],
   },

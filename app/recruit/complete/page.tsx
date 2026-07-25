@@ -3,9 +3,9 @@
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Suspense, useState } from 'react'
 
-const SHARE_TEXT = `Just finished Recruit on Operator — an AI course taught entirely through conversation. No videos, no slides. Just Gojo asking questions until things actually click.
+const SHARE_TEXT = `Just finished Operator — an AI course taught entirely through conversation. No videos, no slides. Just an AI teacher asking questions until things actually click.
 
-If you've been meaning to figure out AI for real work, this is how.
+It's free, and if you've been meaning to figure out AI for real work, this is how.
 
 buildyouroperator.com`
 
@@ -32,14 +32,14 @@ function CompleteInner() {
             You went from zero to building real prompts for your actual job. That&apos;s not nothing. Most people never get past watching videos about it.
           </p>
           <p className="text-lg leading-relaxed mb-10" style={{ color: 'var(--muted)' }}>
-            Agent is next — built from what you and the other Recruit graduates tell us you needed. You&apos;ll hear about it first.
+            Operator keeps growing — new material is built from what graduates like you say they needed. You&apos;ll hear about it first.
           </p>
           <button
             onClick={() => router.push(`/?token=${token}`)}
             className="px-8 py-4 rounded-lg text-base font-semibold hover:opacity-80 cursor-pointer transition-opacity"
             style={{ background: 'var(--accent)', color: '#000' }}
           >
-            See what&apos;s coming →
+            Back to Operator →
           </button>
         </div>
 

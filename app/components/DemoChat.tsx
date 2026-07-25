@@ -168,7 +168,7 @@ export default function DemoChat() {
             }}
           >
             <p className="text-xs" style={{ color: 'var(--muted)' }}>
-              This is Lesson 1 of 6. Scroll down to unlock the rest — free.
+              This is Lesson 1 of 6. All six are free — grab your link below.
             </p>
             <button
               onClick={scrollToWaitlist}
@@ -307,14 +307,14 @@ export default function DemoChat() {
           >
             <p className="text-sm font-semibold mb-1">That&apos;s the demo limit.</p>
             <p className="text-xs mb-4" style={{ color: 'var(--muted)' }}>
-              Get your own link to finish Lesson 1 — free, no credit card.
+              Get your own link for all 6 lessons — free, no credit card.
             </p>
             <button
               onClick={scrollToWaitlist}
               className="px-6 py-2.5 rounded-lg text-sm font-semibold hover:opacity-80 cursor-pointer transition-opacity"
               style={{ background: 'var(--accent)', color: '#000' }}
             >
-              Get Lesson 1 free →
+              Get all 6 lessons free →
             </button>
           </div>
         )}

@@ -40,7 +40,6 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
   const [started, setStarted] = useState(false)
   const [authorized, setAuthorized] = useState<boolean | null>(null)
   const [tokenExpired, setTokenExpired] = useState(false)
-  const [maxLesson, setMaxLesson] = useState<number>(6)
   const [resuming, setResuming] = useState(false)
   const [resendEmail, setResendEmail] = useState('')
   const [resendStatus, setResendStatus] = useState<'idle' | 'loading' | 'sent'>('idle')
@@ -60,9 +59,7 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
         setAuthorized(false)
         return
       }
-      const authData = await r.json()
-      setMaxLesson(authData.maxLesson ?? 6)
-      if (lesson.number > (authData.maxLesson ?? 6)) { setAuthorized(false); return }
+      await r.json()
       setAuthorized(true)
 
       // The server owns conversation history — hydrate from the DB.
@@ -171,9 +168,7 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
       body: JSON.stringify({ token, lesson: lesson.number }),
     })
 
-    if (maxLesson === 1) {
-      router.push('/')
-    } else if (lesson.number < lesson.total) {
+    if (lesson.number < lesson.total) {
       router.push(`/recruit/${lesson.number + 1}?token=${token}`)
     } else {
       router.push(`/recruit/complete?token=${token}`)
@@ -193,8 +188,6 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
   }
 
   if (!authorized) {
-    const isPaidGate = lesson.number > maxLesson
-
     if (tokenExpired) {
       return (
         <div className="min-h-screen flex items-center justify-center px-6" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
@@ -249,14 +242,12 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
       <div className="min-h-screen flex items-center justify-center px-6" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
         <div className="max-w-md text-center">
           <p className="text-xs tracking-widest uppercase mb-4" style={{ color: 'var(--accent)' }}>Operator</p>
-          <h1 className="text-2xl font-bold mb-4">{isPaidGate ? 'Unlock the full course' : 'Access required'}</h1>
+          <h1 className="text-2xl font-bold mb-4">Access required</h1>
           <p className="mb-8 leading-relaxed" style={{ color: 'var(--muted)' }}>
-            {isPaidGate
-              ? 'Lessons 2–6 are part of the Recruit tier. Join as a founding member to continue.'
-              : 'This lesson requires a valid access link. Join the waitlist to get Lesson 1 free.'}
+            This lesson requires a valid access link. Sign up free and yours arrives by email.
           </p>
           <button onClick={() => router.push('/')} className="px-6 py-3 rounded-lg text-sm font-semibold" style={{ background: 'var(--accent)', color: '#000' }}>
-            {isPaidGate ? 'See pricing →' : 'Back to home'}
+            Get your free link
           </button>
         </div>
       </div>
@@ -337,22 +328,18 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
         <div className="px-4 py-3 shrink-0" style={{ background: 'rgba(201,151,58,0.06)', borderTop: '1px solid rgba(201,151,58,0.2)' }}>
           <div className="max-w-2xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <p className="text-xs" style={{ color: 'var(--muted)' }}>
-              {maxLesson === 1
-                ? 'Ready to keep going? Lessons 2–6 unlock the full course.'
-                : lesson.number < lesson.total
-                  ? `Feeling good about this lesson? Move on when you're ready.`
-                  : `You've finished all 6 lessons. You're an Operator.`}
+              {lesson.number < lesson.total
+                ? `Feeling good about this lesson? Move on when you're ready.`
+                : `You've finished all 6 lessons. You're an Operator.`}
             </p>
             <button
               onClick={handleContinue}
               className="px-4 py-2 rounded-lg text-xs font-semibold shrink-0 hover:opacity-80 cursor-pointer transition-opacity self-start sm:self-auto"
               style={{ background: 'var(--accent)', color: '#000' }}
             >
-              {maxLesson === 1
-                ? 'Unlock Lessons 2–6 →'
-                : lesson.number < lesson.total
-                  ? `Lesson ${lesson.number + 1} →`
-                  : 'See what\'s next →'}
+              {lesson.number < lesson.total
+                ? `Lesson ${lesson.number + 1} →`
+                : 'See what\'s next →'}
             </button>
           </div>
         </div>

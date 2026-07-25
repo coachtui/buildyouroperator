@@ -16,8 +16,7 @@ const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 const MODEL = 'claude-sonnet-4-6'
 const MAX_OUTPUT_TOKENS = 512
 
-const MESSAGE_LIMIT_PAID = 50
-const MESSAGE_LIMIT_FREE = 15
+const MESSAGE_LIMIT_PER_LESSON = 30
 const MESSAGE_LIMIT_DEMO = 8
 const MAX_MESSAGE_CHARS = 2000
 // Spend controls: bounds worst-case per-user daily cost regardless of per-lesson limits.
@@ -57,11 +56,6 @@ function resumeMessage(history: ChatMessage[]): string {
   const lastGojo = [...history].reverse().find(m => m.role === 'assistant')
   const checkpoint = (lastGojo?.content ?? 'the previous session').slice(0, 300)
   return `The student is returning. Your last message to them was: "${checkpoint}". Welcome them back in one sentence, summarize where they left off, and ask if they have questions before continuing.`
-}
-
-function prerequisiteLimitMessage(tier: string) {
-  const tierLabel = tier === 'bundle' ? 'Operator' : tier.charAt(0).toUpperCase() + tier.slice(1)
-  return `Hold on. You came in at ${tierLabel} level — which means you're serious. But that also means this foundation matters more for you, not less.\n\nI cap higher-tier students at 3 questions in Recruit lessons. Not to slow you down — to make sure you don't skip the thing that makes everything else click.\n\nFinish Recruit from Lesson 1. When you're done, ${tierLabel} will make ten times more sense. That's not a pitch. It's just the truth.`
 }
 
 function textResponse(text: string, status = 200) {
@@ -224,13 +218,6 @@ export async function POST(req: NextRequest) {
 
   if (!user) return textResponse('Unauthorized', 401)
 
-  const dbTier = user.tier ?? 'recruit'
-  const isPaid = dbTier !== 'recruit'
-  const maxLesson = isPaid ? 6 : 1
-  if (lessonNumber > maxLesson) {
-    return textResponse('Upgrade required', 403)
-  }
-
   // Daily cap across all lessons. Fails open if the chat_usage table isn't
   // migrated yet — per-lesson limits still bound each conversation.
   const today = new Date().toISOString().slice(0, 10)
@@ -285,16 +272,11 @@ export async function POST(req: NextRequest) {
 
   const realCount = countRealUserMessages(storedMessages)
 
-  if (isPaid && RECRUIT_LESSONS.has(lessonKey) && realCount >= 3) {
-    return textResponse(prerequisiteLimitMessage(dbTier))
-  }
-
-  const messageLimit = isPaid ? MESSAGE_LIMIT_PAID : MESSAGE_LIMIT_FREE
-  if (realCount >= messageLimit) {
-    const limitMsg = isPaid
-      ? `You've covered everything this lesson has for you. Use the Continue button to move to the next lesson.`
-      : `You've hit the free limit for Lesson 1. Unlock all 6 lessons at https://buildyouroperator.com`
-    return textResponse(limitMsg, 429)
+  if (realCount >= MESSAGE_LIMIT_PER_LESSON) {
+    return textResponse(
+      `You've covered everything this lesson has for you. Use the Continue button to move to the next lesson.`,
+      429
+    )
   }
 
   // Build the turn to append, server-side.

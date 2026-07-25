@@ -12,10 +12,8 @@ export async function POST(req: NextRequest) {
     const secret = new TextEncoder().encode(process.env.ACCESS_TOKEN_SECRET)
     const { payload } = await jwtVerify(token, secret)
 
-    // Waitlist tokens have lesson:1 and no access:'full' — restrict to lesson 1 only
-    const maxLesson = payload.access === 'full' ? 6 : 1
-
-    return NextResponse.json({ ok: true, tier: payload.tier ?? 'recruit', maxLesson })
+    // Free flip: every valid token gets the full course.
+    return NextResponse.json({ ok: true, tier: payload.tier ?? 'recruit', maxLesson: 6 })
   } catch (err) {
     if (err instanceof errors.JWTExpired) {
       return NextResponse.json({ error: 'expired' }, { status: 401 })

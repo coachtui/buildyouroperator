@@ -19,13 +19,20 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://buildyouroperator.com"),
   title: "Operator — Learn AI by talking to it",
-  description: "The only AI course taught entirely through conversation. No videos. No slides. Just you and an AI that teaches by doing.",
+  description: "The free AI course taught entirely through conversation. No videos. No slides. Six conversations with a teacher that remembers you.",
   openGraph: {
     title: "Operator — Learn AI by talking to it",
-    description: "The only AI course taught entirely through conversation.",
+    description: "The free AI course taught entirely through conversation. Six lessons, zero videos.",
     url: "https://buildyouroperator.com",
     siteName: "Operator",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Operator — Learn AI by talking to it",
+    description: "The free AI course taught entirely through conversation. Six lessons, zero videos.",
   },
 };
 

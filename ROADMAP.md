@@ -14,7 +14,7 @@ than it did yesterday?*
 | 1 | Server owns the conversation | **Done** (migration pending — see below) |
 | 2 | Spend controls | **Done** (migration + console alert pending — see below) |
 | 3 | Student model (memory) | **Done** — verified live |
-| 4 | Free flip + launch surface | Not started |
+| 4 | Free flip + launch surface | **Done** — verified live |
 | 5 | Mastery gating | Not started |
 | 6 | The loops (digest, smart re-engage, notebook) | Not started |
 
@@ -105,15 +105,24 @@ memory is the differentiator.
 
 ## Phase 4 — Free flip + launch surface
 
-- [ ] Access collapses to: valid token → all 6 lessons. Tier checks, `maxLesson`
-      branching, and the 3-question higher-tier cap removed.
-- [ ] Six lesson closers rewritten: no $97 pitch; continue → next lesson; Lesson 6
-      closes on the income-later hook (email list / "bring this to your team").
-- [ ] Landing page: pricing cards + readiness quiz out; email capture is the one CTA.
-- [ ] Stripe routes/webhook parked (not deleted), FAQ/terms swept for pricing.
-- [ ] OG images + meta tags for link previews.
+- [x] Access collapsed: valid token → all 6 lessons (per-lesson cap now 30 messages
+      for everyone). Tier checks, `maxLesson` branching, paid-gate UI, and the
+      3-question higher-tier cap removed.
+- [x] Six lesson closers rewritten: Continue-button forward, no $97 pitch. Lesson 6
+      closes personalized + "show one person what you built" + you'll-hear-first.
+- [x] Landing page rebuilt: pricing cards, readiness quiz, checkout, and spots
+      counter out; six-lesson path section in; email capture is the one CTA; memory
+      ("the teacher in Lesson 6 knows what you struggled with in Lesson 1") is now
+      part of the pitch.
+- [x] Stripe routes/webhook parked (unreachable from UI, not deleted). Waitlist
+      email, FAQ, terms, privacy, and completion page swept — zero pricing refs
+      outside the parked routes.
+- [x] OG image (`app/opengraph-image.tsx`, rendered PNG), richer metadata + twitter
+      card, `metadataBase` set.
 
-**Exit:** stranger goes email → Lesson 6 with zero mention of money.
+**Exit verified 2026-07-25:** waitlist-style token now returns `maxLesson: 6`; a
+free user opened Lesson 4 directly (200, streamed); landing page renders with no
+dollar signs and no pricing cards; /opengraph-image serves image/png.
 
 ## Phase 5 — Mastery gating
 

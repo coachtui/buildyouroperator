@@ -25,7 +25,7 @@ export default function PrivacyPage() {
             <h2 className="text-lg font-semibold mb-3">What we collect</h2>
             <p style={{ color: 'var(--muted)' }}>When you use Operator, we collect:</p>
             <ul className="mt-3 space-y-2" style={{ color: 'var(--muted)' }}>
-              <li className="flex gap-2"><span style={{ color: 'var(--accent)' }}>—</span> Your email address (when you join the waitlist or purchase a tier)</li>
+              <li className="flex gap-2"><span style={{ color: 'var(--accent)' }}>—</span> Your email address (when you sign up)</li>
               <li className="flex gap-2"><span style={{ color: 'var(--accent)' }}>—</span> Conversation transcripts with Gojo, our AI teacher</li>
               <li className="flex gap-2"><span style={{ color: 'var(--accent)' }}>—</span> Lesson progress (which lessons you have started and completed)</li>
               <li className="flex gap-2"><span style={{ color: 'var(--accent)' }}>—</span> Payment information, processed and stored by Stripe — we never see or store your card number</li>

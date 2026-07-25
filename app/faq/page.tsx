@@ -7,27 +7,23 @@ export const metadata = {
 const faqs = [
   {
     q: 'What is Operator?',
-    a: 'Operator is an AI course taught entirely through conversation. Instead of watching videos, you talk to Gojo — an AI teacher built on Claude — who asks you questions, corrects your thinking, and does not move on until you actually understand. Recruit is the first tier: six conversations that take you from zero to daily AI user.',
+    a: 'Operator is an AI course taught entirely through conversation. Instead of watching videos, you talk to Gojo — an AI teacher built on Claude — who asks you questions, corrects your thinking, and does not move on until you actually understand. Six conversations take you from zero to daily AI user — and Gojo remembers you between lessons, so it feels like one teacher, not six chatbots.',
   },
   {
     q: 'Do I need any prior experience with AI?',
     a: 'No. Recruit is designed for people who have tried AI a few times and bounced, or who have never used it at all. You do not need any technical background. If you have a browser and a willingness to have a real conversation, you are ready.',
   },
   {
-    q: 'How does the free preview work?',
-    a: 'Lesson 1 is free — no payment required. Join the waitlist with your email and you will receive your access link immediately. You can complete Lesson 1 at any time. Lessons 2–6 require a Recruit tier purchase.',
+    q: 'Is it really free?',
+    a: 'Yes — all six lessons, no card, no trial clock. Sign up with your email and your private access link arrives immediately. Operator is free while we grow it; if paid offerings come later (like a version for teams), the course you signed up for stays free for you.',
   },
   {
-    q: 'How long does Recruit take?',
-    a: 'Six lessons, each 15–30 minutes depending on the depth of your conversation. Most people complete Recruit over 1–2 weeks. There is no deadline — go at your own pace.',
+    q: 'How long does it take?',
+    a: 'Six lessons, each 15–30 minutes depending on the depth of your conversation. Most people finish over 1–2 weeks. There is no deadline — go at your own pace. Gojo picks up exactly where you left off.',
   },
   {
-    q: 'What is the difference between Recruit, Agent, and Operator?',
-    a: 'Recruit (Use It): zero to daily AI user. Six conversations that turn a skeptic into someone who opens the tool before anything else.\n\nAgent (Build It): workflows, prompt systems, and repeatable processes you can hand to anyone. Requires Recruit completion. Currently in design — shaped by what Recruit graduates say they needed.\n\nOperator (Run It): running AI at scale across a team or business. Requires Agent completion. Small cohort, 20 seats max.',
-  },
-  {
-    q: 'When are Agent and Operator launching?',
-    a: 'Agent is designed after the first Recruit cohort completes. Operator is designed after the first Agent cohort completes. If you purchase now, you will be notified directly when each tier opens. Founding prices are locked at purchase — they will not go up.',
+    q: 'What do I actually leave with?',
+    a: 'By Lesson 6 you have: a working mental model of what AI is, one AI tool chosen for your situation, 2–3 real prompts built for your actual job, and a repeatable workflow you have already run once. Not certificates — things you use the next morning.',
   },
   {
     q: 'Who is Gojo?',
@@ -42,8 +38,8 @@ const faqs = [
     a: 'No. Access is tied to your account and is for individual use only. If someone else wants to take the course, they can sign up at buildyouroperator.com.',
   },
   {
-    q: 'What is the refund policy?',
-    a: 'We offer a full refund within 7 days of purchase if you have completed no more than one lesson. After that window, or after completing more than one lesson, purchases are final. Contact support@buildyouroperator.com to request a refund.',
+    q: 'What comes after the six lessons?',
+    a: 'Operator keeps growing — new material is built from what students say they needed, and people on the list hear about it first. If you want AI training for your team or company, email support@buildyouroperator.com.',
   },
   {
     q: 'What happens to my conversation data?',

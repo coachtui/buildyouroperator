@@ -24,27 +24,18 @@ export default function TermsPage() {
           <section>
             <h2 className="text-lg font-semibold mb-3">The service</h2>
             <p style={{ color: 'var(--muted)' }}>
-              Operator is a conversational AI learning platform operated by AIGA LLC. It provides structured, conversation-based lessons on using AI tools effectively, delivered through an AI teacher named Gojo. By signing up or purchasing access, you agree to these terms.
+              Operator is a conversational AI learning platform operated by AIGA LLC. It provides structured, conversation-based lessons on using AI tools effectively, delivered through an AI teacher named Gojo. By signing up, you agree to these terms.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold mb-3">Tiers and access</h2>
+            <h2 className="text-lg font-semibold mb-3">Access</h2>
             <ul className="space-y-2" style={{ color: 'var(--muted)' }}>
-              <li className="flex gap-2"><span style={{ color: 'var(--accent)' }}>—</span> <strong style={{ color: 'var(--foreground)' }}>Recruit</strong> is the first tier. It includes 6 conversation lessons and is available now.</li>
-              <li className="flex gap-2"><span style={{ color: 'var(--accent)' }}>—</span> <strong style={{ color: 'var(--foreground)' }}>Agent</strong> and <strong style={{ color: 'var(--foreground)' }}>Operator</strong> tiers are in development and will be made available to qualifying users after Recruit is completed. Launch dates are communicated to purchasers directly.</li>
-              <li className="flex gap-2"><span style={{ color: 'var(--accent)' }}>—</span> Access is non-transferable. Your login and access links are for your use only.</li>
+              <li className="flex gap-2"><span style={{ color: 'var(--accent)' }}>—</span> The course — 6 conversation lessons — is currently free with email signup.</li>
+              <li className="flex gap-2"><span style={{ color: 'var(--accent)' }}>—</span> We may add paid offerings in the future (for example, team or business versions). Any such change will not remove free access to the lessons you signed up for.</li>
+              <li className="flex gap-2"><span style={{ color: 'var(--accent)' }}>—</span> Access is non-transferable. Your access links are for your use only.</li>
+              <li className="flex gap-2"><span style={{ color: 'var(--accent)' }}>—</span> Fair use limits apply (per-lesson and daily conversation caps) to keep the service available for everyone.</li>
             </ul>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-semibold mb-3">Payment</h2>
-            <p style={{ color: 'var(--muted)' }}>
-              Payments are one-time (not recurring subscriptions) and are processed by Stripe. Founding cohort prices are locked at the time of purchase — they will not increase for members who purchased at the founding price.
-            </p>
-            <p className="mt-3" style={{ color: 'var(--muted)' }}>
-              <strong style={{ color: 'var(--foreground)' }}>Refunds:</strong> We offer a full refund within 7 days of purchase if you have not completed more than one lesson. After that window, or after completing more than one lesson, purchases are final. To request a refund, contact us at the address below.
-            </p>
           </section>
 
           <section>
@@ -68,7 +59,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-lg font-semibold mb-3">Termination</h2>
             <p style={{ color: 'var(--muted)' }}>
-              AIGA LLC reserves the right to terminate or suspend access to any account that violates these terms, without notice. If your account is terminated for cause, refunds will not be issued.
+              AIGA LLC reserves the right to terminate or suspend access to any account that violates these terms, without notice.
             </p>
           </section>
 
