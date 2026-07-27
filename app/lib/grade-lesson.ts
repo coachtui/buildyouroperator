@@ -12,7 +12,11 @@ const MAX_OUTPUT_TOKENS = 256
 /** Synthetic turns the client never shows; excluded from the graded transcript. */
 const SYSTEM_MESSAGES = ['Begin the lesson.', 'The student is returning.']
 
-/** Below this there is nothing to grade — the student has barely spoken. */
+/**
+ * Below this, no real exchange has happened yet — not a count of student
+ * turns specifically. Counts real messages from both roles (assistant +
+ * student), so a single question-and-answer pair already clears the gate.
+ */
 export const MIN_MESSAGES_TO_GRADE = 2
 
 const NEWLY_MET_SCHEMA = {
@@ -53,9 +57,6 @@ export async function gradeLesson(
   const unmet = goals.filter(g => !alreadyMet.includes(g.id))
   if (unmet.length === 0) return []
 
-  // Counts both roles: the gate is "has at least one real exchange happened
-  // yet", not "has the student sent N messages" — a single assistant
-  // question plus one substantive student reply is already gradeable.
   const realMessageCount = messages.filter(
     m => !(m.role === 'user' && isSystemMessage(m.content))
   ).length
