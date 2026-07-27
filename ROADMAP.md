@@ -126,12 +126,24 @@ dollar signs and no pricing cards; /opengraph-image serves image/png.
 
 ## Phase 5 — Mastery gating
 
-- [ ] Cheap grader checks transcript against the lesson's numbered goals.
-- [ ] Continue unlocks on goals-met, not message count ≥ 4.
-- [ ] Unmet goals fed into Gojo's context so it steers toward what's missing.
+- [x] Cheap grader checks transcript against the lesson's numbered goals.
+      Haiku 4.5 with structured outputs, run in parallel with Gojo's stream
+      (`app/lib/grade-lesson.ts`); goals are structured in
+      `app/lib/lesson-goals.ts` and generate the prompt's goals section.
+- [x] Continue unlocks on goals-met, not message count ≥ 4.
+      Sticky state in `lesson_sessions.goal_state`, delivered to the client as a
+      `\x1f`-delimited tail on the chat stream. Soft unlock at 12 messages so a
+      non-converging grader can't trap anyone; legacy `≥ 4` retained as the
+      no-grader fallback.
+- [x] Unmet goals fed into Gojo's context so it steers toward what's missing.
+      Populates the `graderState` slot in `composeLessonPrompt`.
 
-**Exit:** "won't move on until you get it" is mechanically true. Safe to ship
-post-launch; real transcripts make grader tuning easier.
+**Exit verified 2026-07-27:** "won't move on until you get it" is mechanically
+true **for a student following the course** — direct URL access to any lesson
+remains open by design (Phase 4 free flip), so the gate is a teaching device,
+not a lock. Grader eval fixtures pass (`npm run grade-eval`); checklist ticks
+within one turn; soft unlock verified at a lowered threshold; fallback verified
+with the migration reverted.
 
 ## Phase 6 — The loops (ongoing)
 
