@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "dump-prompts": "tsx scripts/dump-prompts.ts"
+    "dump-prompts": "tsx scripts/dump-prompts.ts",
+    "grade-eval": "tsx --env-file=.env.local scripts/grade-eval.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.90.0",
