@@ -154,7 +154,18 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
       try {
         const parsed = JSON.parse(text.slice(cut + 1)) as GoalState
         if (Array.isArray(parsed.goals) && Array.isArray(parsed.met)) {
-          setGoalState(parsed)
+          // Defense-in-depth: union with whatever was already shown, so a
+          // checkmark never regresses on-screen even if a future tail ever
+          // sent a `met` array missing an id (server bug, request race, or
+          // the same lesson open in two tabs) — independent of the server's
+          // own monotonic-union guarantee.
+          setGoalState(prev => ({
+            ...parsed,
+            met: [...new Set([
+              ...(prev?.met ?? []),
+              ...parsed.met,
+            ])],
+          }))
         }
       } catch {
         // Checklist keeps its previous value and updates next turn.
