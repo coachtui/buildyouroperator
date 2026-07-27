@@ -13,6 +13,7 @@ create table if not exists lesson_sessions (
   user_id uuid not null references users(id) on delete cascade,
   lesson_number int not null,
   messages jsonb not null default '[]',
+  goal_state jsonb,
   completed_at timestamptz,
   created_at timestamptz not null default now(),
   unique (user_id, lesson_number)
