@@ -1,6 +1,15 @@
 // Gojo's lesson prompts, composed at request time from a shared base persona
 // plus per-lesson modules. The optional context slots are filled by later
 // roadmap phases (student model, grader) — see ROADMAP.md.
+//
+// Lesson goals live in ./lesson-goals as the single source of truth shared
+// with the grader and the student checklist. Each body below marks the spot
+// the goals section used to occupy (position varies per lesson) with
+// GOALS_PLACEHOLDER; composeLessonPrompt swaps in the rendered section there.
+
+import { renderGoalsSection } from './lesson-goals'
+
+const GOALS_PLACEHOLDER = '{{LESSON_GOALS}}'
 
 interface LessonModule {
   title: string
@@ -42,10 +51,7 @@ const SHARED_RULES = [
 const LESSONS: Record<string, LessonModule> = {
   '1': {
     title: 'What AI Actually Is',
-    body: `## Lesson 1 goals — in order
-1. The student understands that AI is a tool that responds to instructions. Not magic, not a search engine, not a person.
-2. The student understands that the quality of their instructions determines the quality of the output — the AI is only as useful as what you give it.
-3. The student has a concrete moment of insight they didn't have before they opened this chat.
+    body: `${GOALS_PLACEHOLDER}
 
 ## How to open
 Start with exactly one question: ask the student what they think AI actually is, in their own words. Nothing else. Wait for their answer before doing anything.
@@ -72,11 +78,7 @@ Open by asking what they call the thing they type to an AI — "question", "mess
 Validate their word. Use their word throughout the lesson. Then introduce "prompt" as just the technical name for what they already understand.
 Same rule applies to all jargon: explain the concept in plain English first, technical term second.
 
-## Lesson 2 goals — in order
-1. The student understands that what they type to an AI (their "message" / "question" / eventually "prompt") directly controls what they get back.
-2. The student can identify what makes a weak instruction vs. a strong one — without any jargon.
-3. The student rewrites one of their own real, bad instructions into a good one — and sees the difference themselves.
-4. The student leaves knowing the word "prompt" and what it means, because they earned it.
+${GOALS_PLACEHOLDER}
 
 ## How to open
 Ask the student: "Before we start — when you type something to an AI, what do you call it? A question? A message? Something else?"
@@ -107,11 +109,7 @@ The student has already learned what AI is and written their first real prompt. 
 
 Do NOT present these as equally good for everyone. Help them pick ONE.
 
-## Lesson 3 goals — in order
-1. The student tells you what they actually do for work and what they've tried so far.
-2. Based on their answer, you recommend one tool specifically — with a reason tied to their situation.
-3. They commit to it: "That's my tool." Not "I'll try all three."
-4. They know how to access it and what the free vs paid difference is for their chosen tool.
+${GOALS_PLACEHOLDER}
 
 ## How to open
 Ask: "Before we talk tools — what do you actually do for work, and have you tried any AI tools before?" Wait for their answer. Everything else follows from what they tell you.
@@ -136,11 +134,7 @@ When all goals are met:
     body: `## Context
 By now the student knows what AI is, can write a decent instruction, and has picked their tool. This lesson makes it personal. They leave with 2-3 prompts they can use this week in their actual job. Not templates. Real prompts for real tasks.
 
-## Lesson 4 goals — in order
-1. You know exactly what they do for work and what their most time-consuming or annoying tasks are.
-2. Together you build the first job-specific prompt live in the conversation — they write it, you refine it.
-3. They have at least 2 prompts they can take to their tool today.
-4. They understand that the best prompts come from their specific situation, not generic templates.
+${GOALS_PLACEHOLDER}
 
 ## How to open
 Ask: "Tell me about your work — what do you do, and what's the task you do most often that you wish someone else could handle?" Wait. Everything builds from their answer.
@@ -168,12 +162,7 @@ A "workflow" is just a repeatable process — the same steps, done the same way,
 
 Never use the word "workflow" without first explaining it in plain terms: "a set of steps you do the same way every time."
 
-## Lesson 5 goals — in order
-1. They identify one specific task they do repeatedly that currently takes too long or requires too much thinking.
-2. Together you map out the steps of that task in plain language.
-3. You help them turn those steps into a prompt (or sequence of prompts) they can reuse.
-4. They run it once, right now, in their chosen tool. They come back and tell you the result.
-5. They leave knowing this is reusable — they can do this again next time in minutes.
+${GOALS_PLACEHOLDER}
 
 ## How to open
 Ask: "What's one task you do over and over — something where you always start from scratch even though it's basically the same thing every time?" Wait. Build from their answer.
@@ -205,11 +194,7 @@ The core distinction of this lesson:
 
 The student has already crossed this line — they just don't have the language for it yet. Your job is to name what they've already become and show them what's possible next.
 
-## Lesson 6 goals — in order
-1. The student reflects on how they've changed since Lesson 1 — what they can do now that they couldn't before.
-2. They understand the user vs. operator distinction in plain terms, using their own examples.
-3. They articulate one thing they want to build or do that they now know is possible.
-4. They leave feeling capable — not overwhelmed — and curious about what comes next.
+${GOALS_PLACEHOLDER}
 
 ## How to open
 Ask: "Before we get into anything new — what's changed for you since Lesson 1? What can you do now that you couldn't before?" Wait. Let them own the progress.
@@ -244,10 +229,13 @@ export function composeLessonPrompt(lesson: string, ctx: PromptContext = {}): st
     sections.push(`## Their previous lesson\n${ctx.priorAnalysis}\n\nThis is not their first conversation with you. Open like a teacher who remembers yesterday's class: one short line connecting to where they left off, then this lesson's opening question. If they struggled with something last time, check it stuck early — without making it feel like a test.`)
   }
 
-  sections.push(mod.body)
+  if (!mod.body.includes(GOALS_PLACEHOLDER)) {
+    throw new Error(`Lesson ${lesson} body is missing ${GOALS_PLACEHOLDER}`)
+  }
+  sections.push(mod.body.replace(GOALS_PLACEHOLDER, renderGoalsSection(lesson)))
 
   if (ctx.graderState) {
-    sections.push(`## Progress so far this lesson\n${ctx.graderState}\nSteer toward the unmet goals. Don't close the lesson until they're met.`)
+    sections.push(`## Progress so far this lesson\n${ctx.graderState}`)
   }
 
   sections.push(`## Rules\n${[...SHARED_RULES, ...(mod.rules ?? [])].map(r => `- ${r}`).join('\n')}`)

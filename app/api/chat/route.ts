@@ -10,6 +10,8 @@ import {
   formatStudentProfile,
   formatPriorAnalysis,
 } from '@/app/lib/student-profile'
+import { gradeLesson, formatGraderState } from '@/app/lib/grade-lesson'
+import { LESSON_GOALS } from '@/app/lib/lesson-goals'
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -27,6 +29,19 @@ const DEMO_MAX_HISTORY_ENTRIES = 24
 const DEMO_MAX_TOTAL_CHARS = 20000
 
 const RECRUIT_LESSONS = new Set(['1', '2', '3', '4', '5', '6'])
+
+// Student is released after this many messages even with goals unmet, so a
+// grader that never converges can't trap anyone. Well under
+// MESSAGE_LIMIT_PER_LESSON so the 30-message copy stays accurate.
+const SOFT_UNLOCK_MESSAGES = 12
+// Unit separator: not typeable, cannot occur in Gojo's prose.
+const GOAL_TAIL_DELIMITER = '\x1f'
+// Beyond this the checklist just updates next turn; state still persists.
+const GRADER_TAIL_TIMEOUT_MS = 3000
+
+interface GoalStateRow {
+  met?: number[]
+}
 
 interface ChatMessage {
   role: 'user' | 'assistant'
@@ -73,7 +88,8 @@ interface TokenUsage {
 function streamLesson(
   systemPrompt: string,
   history: ChatMessage[],
-  onComplete?: (assistantText: string, usage: TokenUsage) => Promise<void>
+  onComplete?: (assistantText: string, usage: TokenUsage) => Promise<void>,
+  tail?: () => Promise<string | null>
 ) {
   const stream = client.messages.stream({
     model: MODEL,
@@ -104,6 +120,16 @@ function streamLesson(
       } catch {
         // Partial output still gets persisted below; the client shows a retry message.
       } finally {
+        // Enqueued after Gojo's text and never pushed to `chunks`, so the tail
+        // is not persisted as part of the assistant message.
+        if (tail) {
+          try {
+            const suffix = await tail()
+            if (suffix) controller.enqueue(encoder.encode(suffix))
+          } catch (err) {
+            console.error('goal tail failed:', err instanceof Error ? err.message : err)
+          }
+        }
         controller.close()
         resolveDone({ text: chunks.join(''), usage })
       }
@@ -240,7 +266,7 @@ export async function POST(req: NextRequest) {
   const [{ data: existingSession }, priorAnalysisResult] = await Promise.all([
     supabase
       .from('lesson_sessions')
-      .select('id, messages')
+      .select('id, messages, goal_state')
       .eq('user_id', user.id)
       .eq('lesson_number', lessonNumber)
       .single(),
@@ -254,6 +280,22 @@ export async function POST(req: NextRequest) {
       : Promise.resolve({ data: null }),
   ])
 
+  const storedMessages: ChatMessage[] = Array.isArray(existingSession?.messages)
+    ? (existingSession!.messages as ChatMessage[])
+    : []
+
+  const realCount = countRealUserMessages(storedMessages)
+
+  // If this row's goal_state is null (pre-Phase-5 session, or a row that
+  // predates any grading), met defaults to []. The client's legacy-unlock
+  // fallback triggers when no tail is ever emitted at all (persistent grader
+  // failure or demo mode) — NOT from this column being missing; a genuinely
+  // missing goal_state column would break this entire select, not degrade
+  // gracefully. The migration is a hard dependency once this code ships.
+  const goalStateRow = (existingSession?.goal_state ?? null) as GoalStateRow | null
+  const met = Array.isArray(goalStateRow?.met) ? goalStateRow.met : []
+  const goals = LESSON_GOALS[lessonKey] ?? []
+
   // Cross-lesson memory: profile + previous lesson's analysis shape the prompt.
   const promptCtx: PromptContext = {}
   const profile = (user.student_profile ?? null) as StudentProfile | null
@@ -264,13 +306,14 @@ export async function POST(req: NextRequest) {
   const priorAnalysis = priorAnalysisResult.data as LessonAnalysisRow | null
   if (priorAnalysis) promptCtx.priorAnalysis = formatPriorAnalysis(priorAnalysis)
 
+  const graderState = formatGraderState(
+    lessonKey,
+    met,
+    realCount >= SOFT_UNLOCK_MESSAGES
+  )
+  if (graderState) promptCtx.graderState = graderState
+
   const systemPrompt = composeLessonPrompt(lessonKey, promptCtx)!
-
-  const storedMessages: ChatMessage[] = Array.isArray(existingSession?.messages)
-    ? (existingSession!.messages as ChatMessage[])
-    : []
-
-  const realCount = countRealUserMessages(storedMessages)
 
   if (realCount >= MESSAGE_LIMIT_PER_LESSON) {
     return textResponse(
@@ -303,6 +346,37 @@ export async function POST(req: NextRequest) {
 
   const existingSessionId = existingSession?.id ?? null
 
+  // Graded through the student's latest message — Gojo's pending reply adds no
+  // evidence of student understanding, so this can run alongside the stream
+  // instead of after it. Never rejects; gradeLesson returns [] on failure.
+  const shouldGrade =
+    action === 'message' && goals.length > 0 && met.length < goals.length
+  const gradePromise: Promise<number[]> = shouldGrade
+    ? gradeLesson(chatHistory, lessonKey, met)
+    : Promise.resolve([])
+
+  // Emitted even when grading was skipped, so the checklist always renders.
+  const goalTail = async (): Promise<string | null> => {
+    if (goals.length === 0) return null
+
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const newlyMet = await Promise.race([
+      gradePromise,
+      new Promise<number[]>(resolve => {
+        timer = setTimeout(() => resolve([]), GRADER_TAIL_TIMEOUT_MS)
+      }),
+    ])
+    if (timer) clearTimeout(timer)
+
+    const union = [...new Set([...met, ...newlyMet])].sort((a, b) => a - b)
+    const payload = {
+      goals: goals.map(g => ({ id: g.id, label: g.label })),
+      met: union,
+      soft: realCount >= SOFT_UNLOCK_MESSAGES,
+    }
+    return `${GOAL_TAIL_DELIMITER}${JSON.stringify(payload)}`
+  }
+
   return streamLesson(systemPrompt, chatHistory, async (assistantText, usage) => {
     const { error: usageRpcError } = await supabase.rpc('increment_chat_usage', {
       p_user_id: user.id,
@@ -314,11 +388,16 @@ export async function POST(req: NextRequest) {
       console.error('chat_usage increment failed (run phase2 migration?):', usageRpcError.message)
     }
 
+    // Full await, no timeout: unlike the tail this runs in after(), so a slow
+    // grade is still saved even if the checklist missed it this turn.
+    const newlyMet = await gradePromise.catch(() => [] as number[])
+    const unionMet = [...new Set([...met, ...newlyMet])].sort((a, b) => a - b)
+
     const fullMessages = [...chatHistory, { role: 'assistant', content: assistantText }]
     if (existingSessionId) {
       const { error } = await supabase
         .from('lesson_sessions')
-        .update({ messages: fullMessages })
+        .update({ messages: fullMessages, goal_state: { met: unionMet } })
         .eq('id', existingSessionId)
       if (error) console.error('session update failed:', error.message)
     } else {
@@ -326,17 +405,22 @@ export async function POST(req: NextRequest) {
       // (user_id, lesson_number) unique constraint being applied yet.
       const { error } = await supabase
         .from('lesson_sessions')
-        .insert({ user_id: user.id, lesson_number: lessonNumber, messages: fullMessages })
+        .insert({
+          user_id: user.id,
+          lesson_number: lessonNumber,
+          messages: fullMessages,
+          goal_state: { met: unionMet },
+        })
       if (error) {
         const { error: updateError } = await supabase
           .from('lesson_sessions')
-          .update({ messages: fullMessages })
+          .update({ messages: fullMessages, goal_state: { met: unionMet } })
           .eq('user_id', user.id)
           .eq('lesson_number', lessonNumber)
         if (updateError) console.error('session persist failed:', updateError.message)
       }
     }
-  })
+  }, goalTail)
 }
 
 // The Anthropic API requires alternating roles; merge if the last turn was also the user's

@@ -20,6 +20,17 @@ const SYSTEM_MESSAGES = [
   'The student is returning.',
 ]
 
+// Must match GOAL_TAIL_DELIMITER in app/api/chat/route.ts.
+const GOAL_TAIL_DELIMITER = '\x1f'
+// Used only when no grader tail ever arrives (pre-migration / grader down).
+const LEGACY_UNLOCK_MESSAGES = 4
+
+interface GoalState {
+  goals: { id: number; label: string }[]
+  met: number[]
+  soft: boolean
+}
+
 const LESSON_DESCRIPTIONS: Record<number, string> = {
   1: "This isn't a video. It's a conversation. By the end, you'll have one concrete shift in how you understand what AI actually is — and why the quality of your instructions determines everything you get back.",
   2: "This isn't a video. It's a conversation. You'll identify the difference between a weak instruction and a strong one, then rewrite one of your own bad ones live. You leave with a better prompt — and the word for it.",
@@ -43,6 +54,7 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
   const [resuming, setResuming] = useState(false)
   const [resendEmail, setResendEmail] = useState('')
   const [resendStatus, setResendStatus] = useState<'idle' | 'loading' | 'sent'>('idle')
+  const [goalState, setGoalState] = useState<GoalState | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -125,11 +137,39 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
       const { done, value } = await reader.read()
       if (done) break
       text += decoder.decode(value, { stream: true })
+
+      const cut = text.indexOf(GOAL_TAIL_DELIMITER)
+      const visible = cut === -1 ? text : text.slice(0, cut)
+
       setMessages(prev => {
         const updated = [...prev]
-        updated[updated.length - 1] = { role: 'assistant', content: text }
+        updated[updated.length - 1] = { role: 'assistant', content: visible }
         return updated
       })
+    }
+
+    // A stream that died mid-tail leaves unparseable JSON; keep prior state.
+    const cut = text.indexOf(GOAL_TAIL_DELIMITER)
+    if (cut !== -1) {
+      try {
+        const parsed = JSON.parse(text.slice(cut + 1)) as GoalState
+        if (Array.isArray(parsed.goals) && Array.isArray(parsed.met)) {
+          // Defense-in-depth: union with whatever was already shown, so a
+          // checkmark never regresses on-screen even if a future tail ever
+          // sent a `met` array missing an id (server bug, request race, or
+          // the same lesson open in two tabs) — independent of the server's
+          // own monotonic-union guarantee.
+          setGoalState(prev => ({
+            ...parsed,
+            met: [...new Set([
+              ...(prev?.met ?? []),
+              ...parsed.met,
+            ])],
+          }))
+        }
+      } catch {
+        // Checklist keeps its previous value and updates next turn.
+      }
     }
   }
 
@@ -159,7 +199,20 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
     m => m.role === 'user' && !SYSTEM_MESSAGES.some(s => m.content.startsWith(s))
   ).length
 
-  const showContinue = started && !loading && realUserMessageCount >= 4
+  const unmetCount = goalState
+    ? goalState.goals.length - goalState.met.length
+    : null
+
+  // No tail ever arrived (migration not applied, or grader erroring) — behave
+  // exactly as the pre-Phase-5 app did rather than trapping anyone.
+  const showContinue =
+    started &&
+    !loading &&
+    (goalState
+      ? unmetCount === 0 || goalState.soft
+      : realUserMessageCount >= LEGACY_UNLOCK_MESSAGES)
+
+  const releasedEarly = !!goalState && goalState.soft && (unmetCount ?? 0) > 0
 
   async function handleContinue() {
     await fetch('/api/complete-lesson', {
@@ -286,6 +339,38 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
           </div>
         ) : (
           <div className="space-y-6">
+            {goalState && (
+              <div
+                className="sticky top-0 z-10 mb-4 rounded-lg border px-4 py-3"
+                style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}
+              >
+                <p
+                  className="text-xs tracking-widest uppercase mb-2"
+                  style={{ color: 'var(--muted)' }}
+                >
+                  Lesson {lesson.number}
+                </p>
+                <ul className="flex flex-col gap-1.5">
+                  {goalState.goals.map(g => {
+                    const done = goalState.met.includes(g.id)
+                    return (
+                      <li key={g.id} className="flex items-start gap-2 text-sm">
+                        <span
+                          aria-hidden
+                          style={{ color: done ? 'var(--accent)' : 'var(--muted)' }}
+                        >
+                          {done ? '✓' : '○'}
+                        </span>
+                        <span style={{ color: done ? 'var(--foreground)' : 'var(--muted)' }}>
+                          {g.label}
+                        </span>
+                        <span className="sr-only">{done ? '(done)' : '(not yet)'}</span>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            )}
             {visibleMessages.map((msg, i) => (
               <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 {msg.role === 'assistant' && (
@@ -323,6 +408,12 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
           </div>
         )}
       </div>
+
+      {releasedEarly && (
+        <p className="text-sm mb-3" style={{ color: 'var(--muted)' }}>
+          You&apos;ve put in the work. Move on when you&apos;re ready.
+        </p>
+      )}
 
       {showContinue && (
         <div className="px-4 py-3 shrink-0" style={{ background: 'rgba(201,151,58,0.06)', borderTop: '1px solid rgba(201,151,58,0.2)' }}>
