@@ -341,7 +341,7 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
           <div className="space-y-6">
             {goalState && (
               <div
-                className="mb-4 rounded-lg border px-4 py-3"
+                className="sticky top-0 z-10 mb-4 rounded-lg border px-4 py-3"
                 style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}
               >
                 <p

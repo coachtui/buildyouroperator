@@ -286,8 +286,12 @@ export async function POST(req: NextRequest) {
 
   const realCount = countRealUserMessages(storedMessages)
 
-  // Fails open: before the phase5 migration, goal_state is undefined and the
-  // client falls back to the legacy message-count unlock.
+  // If this row's goal_state is null (pre-Phase-5 session, or a row that
+  // predates any grading), met defaults to []. The client's legacy-unlock
+  // fallback triggers when no tail is ever emitted at all (persistent grader
+  // failure or demo mode) — NOT from this column being missing; a genuinely
+  // missing goal_state column would break this entire select, not degrade
+  // gracefully. The migration is a hard dependency once this code ships.
   const goalStateRow = (existingSession?.goal_state ?? null) as GoalStateRow | null
   const met = Array.isArray(goalStateRow?.met) ? goalStateRow.met : []
   const goals = LESSON_GOALS[lessonKey] ?? []

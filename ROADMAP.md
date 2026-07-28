@@ -141,9 +141,11 @@ dollar signs and no pricing cards; /opengraph-image serves image/png.
 **Exit verified 2026-07-27:** "won't move on until you get it" is mechanically
 true **for a student following the course** — direct URL access to any lesson
 remains open by design (Phase 4 free flip), so the gate is a teaching device,
-not a lock. Grader eval fixtures pass (`npm run grade-eval`); checklist ticks
-within one turn; soft unlock verified at a lowered threshold; fallback verified
-with the migration reverted.
+not a lock. Grader eval fixtures pass (`npm run grade-eval`, covering lessons 1
+and 3 — lessons 2/4/5/6 untested by fixture, covered only by the soft-unlock
+safety net); checklist ticks within one turn; soft unlock verified at a
+lowered threshold; fallback verified with the lesson's goal list stubbed
+empty.
 
 ## Phase 6 — The loops (ongoing)
 

@@ -137,6 +137,8 @@ export function formatGraderState(
     lines.push(
       `This student has been working a long time and has now been given the option to move on regardless. Do not keep pushing on the unmet goals. Give them one useful thing they can take with them and close warmly.`
     )
+  } else if (unmet.length > 0) {
+    lines.push(`Steer toward the unmet goals. Don't close the lesson until they're met.`)
   }
 
   return lines.join('\n')

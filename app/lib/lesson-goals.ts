@@ -44,7 +44,7 @@ export const LESSON_GOALS: Record<string, LessonGoal[]> = {
     },
     {
       id: 4,
-      label: 'You earned the word "prompt"',
+      label: 'You earned the technical name for it',
       criterion: `The student leaves knowing the word "prompt" and what it means, because they earned it.`,
     },
   ],

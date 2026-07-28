@@ -229,10 +229,13 @@ export function composeLessonPrompt(lesson: string, ctx: PromptContext = {}): st
     sections.push(`## Their previous lesson\n${ctx.priorAnalysis}\n\nThis is not their first conversation with you. Open like a teacher who remembers yesterday's class: one short line connecting to where they left off, then this lesson's opening question. If they struggled with something last time, check it stuck early — without making it feel like a test.`)
   }
 
+  if (!mod.body.includes(GOALS_PLACEHOLDER)) {
+    throw new Error(`Lesson ${lesson} body is missing ${GOALS_PLACEHOLDER}`)
+  }
   sections.push(mod.body.replace(GOALS_PLACEHOLDER, renderGoalsSection(lesson)))
 
   if (ctx.graderState) {
-    sections.push(`## Progress so far this lesson\n${ctx.graderState}\nSteer toward the unmet goals. Don't close the lesson until they're met.`)
+    sections.push(`## Progress so far this lesson\n${ctx.graderState}`)
   }
 
   sections.push(`## Rules\n${[...SHARED_RULES, ...(mod.rules ?? [])].map(r => `- ${r}`).join('\n')}`)
