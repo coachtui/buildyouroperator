@@ -113,10 +113,45 @@ const CASES: Case[] = [
       ],
       [
         'user',
-        `That's my tool then. ChatGPT. I'll stay on free for now and upgrade when I need the file uploads — I can just log in with the account I already have.`,
+        `That's my tool then. ChatGPT — makes sense since I'm already in it and the file uploads will matter for handing it statements. I'll stay on free for now and upgrade when I need that — I can just log in with the account I already have.`,
       ],
     ],
     expect: [1, 2, 3, 4],
+  },
+  {
+    // Live acceptance run 2026-08-28: recommendation made by the teacher, the
+    // student committed but never said why the tool fits them. Goal 2 waits
+    // for the student's own echo of the reason.
+    name: 'L3 committed but never echoed why the tool fits',
+    lesson: '3',
+    alreadyMet: [1, 3, 4],
+    transcript: [
+      [
+        'assistant',
+        `Here's my call: Claude. You write careful, work-order-style prompts, and Claude follows detailed instructions well. There's a free tier with usage limits — start there.`,
+      ],
+      [
+        'user',
+        `Claude it is then, one tool, done deciding. Just made an account at claude.ai with my business email. It's open in the other tab.`,
+      ],
+    ],
+    expect: [],
+  },
+  {
+    name: 'L3 student echoes why the recommended tool fits',
+    lesson: '3',
+    alreadyMet: [1, 3, 4],
+    transcript: [
+      [
+        'assistant',
+        `Here's my call: Claude. You write careful, work-order-style prompts, and Claude follows detailed instructions well.`,
+      ],
+      [
+        'user',
+        `Claude it is. Your pick made sense — I write detailed work-order-style briefs and it follows those better than the others. Done deciding.`,
+      ],
+    ],
+    expect: [2],
   },
   // ——— Regression net for the over-credit patterns observed live 2026-08-28 ———
   {

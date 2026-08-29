@@ -57,7 +57,7 @@ export const LESSON_GOALS: Record<string, LessonGoal[]> = {
     {
       id: 2,
       label: 'Got one specific recommendation',
-      criterion: `Based on their answer, you recommend one tool specifically — with a reason tied to their situation.`,
+      criterion: `The student received one specific tool recommendation and can say back why it fits their situation — the tool plus the reason, in their own words.`,
     },
     {
       id: 3,
