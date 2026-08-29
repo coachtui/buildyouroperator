@@ -7,7 +7,7 @@ export interface GradeMessage {
 }
 
 const MODEL = 'claude-haiku-4-5'
-const MAX_OUTPUT_TOKENS = 256
+const MAX_OUTPUT_TOKENS = 1500
 
 /** Synthetic turns the client never shows; excluded from the graded transcript. */
 const SYSTEM_MESSAGES = ['Begin the lesson.', 'The student is returning.']
@@ -19,17 +19,37 @@ const SYSTEM_MESSAGES = ['Begin the lesson.', 'The student is returning.']
  */
 export const MIN_MESSAGES_TO_GRADE = 2
 
+// Each met goal must carry the student sentence that proves it. Requiring the
+// quote is what keeps the grader honest — an id with no quotable evidence
+// can't be returned at all.
 const NEWLY_MET_SCHEMA = {
   type: 'object',
   properties: {
+    reasoning: {
+      type: 'string',
+      description:
+        'Working notes, one short line per goal: met or not, and why. Keep it terse.',
+    },
     newly_met: {
       type: 'array',
-      items: { type: 'integer' },
       description:
-        'Ids of goals that are now met and were not already met. Empty array if none.',
+        'Goals that are now met and were not already met. Empty array if none.',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer' },
+          evidence: {
+            type: 'string',
+            description:
+              'The exact student sentence from the transcript that meets this goal, quoted verbatim.',
+          },
+        },
+        required: ['id', 'evidence'],
+        additionalProperties: false,
+      },
     },
   },
-  required: ['newly_met'],
+  required: ['reasoning', 'newly_met'],
   additionalProperties: false,
 }
 
@@ -70,6 +90,7 @@ export async function gradeLesson(
     const response = await client.messages.create({
       model: MODEL,
       max_tokens: MAX_OUTPUT_TOKENS,
+      temperature: 0,
       output_config: {
         format: { type: 'json_schema', schema: NEWLY_MET_SCHEMA },
       },
@@ -83,7 +104,14 @@ Below are the lesson goals NOT yet marked met. For each, decide whether the tran
 Rules:
 - Grade the STUDENT, not the teacher. Evidence must come from what the student said or did. Gojo asserting something, or the student replying "yeah" / "makes sense" / "ok", is NOT evidence.
 - A goal that asks for a "concrete" insight, example, or moment requires the student to describe a specific real situation — a task they tried, a message they wrote, a result they got, something dated or nameable. A generic acknowledgment like "my vague requests were the problem" or "that makes more sense now", with no specific situation attached, is NOT concrete — it does not satisfy a separate "concrete insight" goal, even if it also happens to satisfy a different, more general goal.
-- Be strict. If you are unsure, do not mark it met.
+- A goal that requires the student to DO something in the conversation — write or rewrite something, run something, produce something, name a specific plan — is met only when the transcript contains the thing itself: the actual rewritten text, the actual reported result, the actual named plan. The student describing what they WOULD write, understanding what it should contain, or promising to do it, is NOT the thing. Doing it is.
+- The artifact must be the exact thing the goal names. An analogy, or an example from a different domain (how they'd brief a person, a comparison to their own trade), shows understanding but is not the artifact — if the goal says they rewrite their own AI instruction, only an actual rewritten AI instruction counts.
+- Every goal you return must carry, as evidence, the exact sentence that meets it, quoted verbatim from the transcript. Normally that sentence must be the student's. The exception: a goal whose wording names the teacher's action ("you recommend...", "together you...") is graded on whoever the goal assigns the action to — a goal describing only the teacher's action is met by Gojo's quoted turn alone, and a joint goal needs each side's own words for its own half. If no quotable sentence meets the goal, the goal is not met — never credit a goal because the student "would clearly agree" or because it fits the spirit of the conversation.
+- A goal about what the student WANTS to do or build next is about the future. A past accomplishment, however impressive, is not evidence for it — the quote must express the forward-looking intent.
+- A goal with a number in it ("at least 2", "three steps") is met only if you can count that many distinct items in the transcript. Count them. One item plus the intent to make more ("I could make another one later") is one item, not two — future intent never counts toward the number.
+- A goal that requires the student to know or use a specific term is met only after that term has actually appeared in the conversation and the student has shown they understand it. If the term has not come up yet, the goal cannot be met, no matter how well the student understands the underlying concept.
+- A goal that the student "understands" or "knows" something is met only when the student states that thing, in their own words. Doing something merely consistent with the understanding — building a specific prompt, making a good choice — is not stating it.
+- Be strict. If you are unsure, do not mark it met. Meeting a goal one turn late is fine; marking it early defeats the purpose of the lesson.
 - A goal marked met can never be undone, so a wrong "met" is worse than a missed one.
 - Only return ids from the list below.
 
@@ -93,7 +121,7 @@ ${rubric}
 TRANSCRIPT:
 ${realTranscript(messages)}
 
-Return the ids of goals now met. Return an empty array if none are.`,
+Return the goals now met, each with its verbatim student-sentence evidence. Return an empty array if none are.`,
         },
       ],
     })
@@ -103,9 +131,13 @@ Return the ids of goals now met. Return an empty array if none are.`,
     if (!Array.isArray(parsed.newly_met)) return []
 
     const validIds = new Set(unmet.map(g => g.id))
-    return parsed.newly_met.filter(
-      (id): id is number => typeof id === 'number' && validIds.has(id)
-    )
+    return parsed.newly_met
+      .map(item =>
+        item && typeof item === 'object' && 'id' in item
+          ? (item as { id: unknown }).id
+          : undefined
+      )
+      .filter((id): id is number => typeof id === 'number' && validIds.has(id))
   } catch (err) {
     console.error('gradeLesson failed:', err instanceof Error ? err.message : err)
     return []
