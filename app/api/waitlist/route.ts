@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
     }
     const lesson1Url = `${BASE_URL}/recruit/1?token=${token}`
 
-    await Promise.all([
+    const [accessEmail, notifyEmail] = await Promise.all([
       resend.emails.send({
         from: FROM,
         to: normalized,
@@ -77,6 +77,20 @@ export async function POST(req: NextRequest) {
         html: `<p>${normalized} just joined the Operator waitlist.</p>`,
       }),
     ])
+
+    // The Resend SDK reports failures via `error`, not by throwing. The access
+    // link IS the product — if it didn't send, the signup failed and the user
+    // must see that now, not wait for an email that never comes. (Re-submitting
+    // is safe: the users upsert above is idempotent.)
+    if (accessEmail.error) {
+      console.error('Resend error (access link):', accessEmail.error)
+      return NextResponse.json(
+        { error: 'Failed to send your access link. Try again.' },
+        { status: 500 }
+      )
+    }
+    // The internal notification failing is not the student's problem.
+    if (notifyEmail.error) console.error('Resend error (signup notify):', notifyEmail.error)
 
     return NextResponse.json(
       { message: 'Check your inbox — your access link is on its way.' },

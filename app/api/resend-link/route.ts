@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
   const resumeLesson = Math.min(Math.max(user.current_lesson ?? 1, 1), 6)
   const resumeUrl = `${BASE_URL}/recruit/${resumeLesson}?token=${token}`
 
-  await resend.emails.send({
+  const { error: sendError } = await resend.emails.send({
     from: FROM,
     to: normalized,
     subject: 'Your Operator access link',
@@ -72,6 +72,11 @@ export async function POST(req: NextRequest) {
       </div>
     `,
   })
+
+  // Deliberately still SAFE_MESSAGE on failure: send is only attempted for
+  // accounts that exist, so erroring here would let a Resend outage double as
+  // an account-enumeration oracle. Log loudly for ops instead.
+  if (sendError) console.error('Resend error (resend-link):', sendError)
 
   return NextResponse.json({ message: SAFE_MESSAGE })
 }
