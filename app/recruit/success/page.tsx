@@ -8,11 +8,12 @@ function SuccessInner() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const sessionId = searchParams.get('session_id')
-  const [state, setState] = useState<'loading' | 'success' | 'error'>('loading')
+  // A missing session id is an error from the first render — no effect needed.
+  const [state, setState] = useState<'loading' | 'success' | 'error'>(sessionId ? 'loading' : 'error')
   const [token, setToken] = useState('')
 
   useEffect(() => {
-    if (!sessionId) { setState('error'); return }
+    if (!sessionId) return
     fetch('/api/checkout/verify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
