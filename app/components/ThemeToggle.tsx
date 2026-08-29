@@ -1,24 +1,44 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
+
+// Theme lives in localStorage; useSyncExternalStore keeps SSR consistent
+// (server snapshot = dark default) without a set-state-in-effect dance.
+const THEME_EVENT = 'operator-theme-change'
+
+function subscribe(onChange: () => void) {
+  window.addEventListener(THEME_EVENT, onChange)
+  window.addEventListener('storage', onChange)
+  return () => {
+    window.removeEventListener(THEME_EVENT, onChange)
+    window.removeEventListener('storage', onChange)
+  }
+}
+
+function getSnapshot() {
+  try {
+    return localStorage.getItem('operator-theme') !== 'light'
+  } catch {
+    return true
+  }
+}
 
 export default function ThemeToggle() {
-  const [isDark, setIsDark] = useState(true)
-
-  useEffect(() => {
-    const saved = localStorage.getItem('operator-theme')
-    setIsDark(saved !== 'light')
-  }, [])
+  const isDark = useSyncExternalStore(subscribe, getSnapshot, () => true)
 
   function toggle() {
     const next = isDark ? 'light' : 'dark'
-    setIsDark(!isDark)
-    localStorage.setItem('operator-theme', next)
+    try {
+      localStorage.setItem('operator-theme', next)
+    } catch {
+      // Theme just won't persist — still applies below for this page view.
+    }
     if (next === 'light') {
       document.documentElement.setAttribute('data-theme', 'light')
     } else {
       document.documentElement.removeAttribute('data-theme')
     }
+    window.dispatchEvent(new Event(THEME_EVENT))
   }
 
   return (

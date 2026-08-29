@@ -11,11 +11,11 @@ than it did yesterday?*
 
 | Phase | Name | Status |
 |-------|------|--------|
-| 1 | Server owns the conversation | **Done** (migration pending — see below) |
+| 1 | Server owns the conversation | **Done** — migration applied (verified in live DB 2026-08-28) |
 | 2 | Spend controls | **Done** (migration + console alert pending — see below) |
 | 3 | Student model (memory) | **Done** — verified live |
 | 4 | Free flip + launch surface | **Done** — verified live |
-| 5 | Mastery gating | Not started |
+| 5 | Mastery gating | **Done** — verified live 2026-07-27 |
 | 6 | The loops (digest, smart re-engage, notebook) | Not started |
 
 ---
@@ -36,10 +36,8 @@ The chat endpoint stops trusting the client. Foundation for all intelligence wor
       signup instead of being logged and ignored.
 - [x] Persist assistant turns durably via `after()`; persistence errors are logged,
       insert falls back to update so it works with or without the unique constraint.
-- [x] Unique constraint in schema + migration file.
-      **→ ACTION NEEDED: run `supabase-migrations/2026-07-25-phase1-unique-sessions.sql`
-      in the Supabase SQL editor** (project `olyhuecjtopwbovbtyri` isn't linked to the
-      local CLI account, so it couldn't be applied automatically).
+- [x] Unique constraint in schema + migration file. Applied — verified in the live DB
+      2026-08-28 (`lesson_sessions_user_lesson_key` exists).
 - [x] Prompt refactor: `app/lib/lesson-prompts.ts` — base persona + per-lesson modules,
       `composeLessonPrompt(lesson, ctx)` with slots for `studentProfile`,
       `priorAnalysis` (Phase 3) and `graderState` (Phase 5).

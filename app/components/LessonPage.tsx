@@ -49,9 +49,9 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [started, setStarted] = useState(false)
-  const [authorized, setAuthorized] = useState<boolean | null>(null)
+  // No token can never authorize — decided at render, not in an effect.
+  const [authorized, setAuthorized] = useState<boolean | null>(token ? null : false)
   const [tokenExpired, setTokenExpired] = useState(false)
-  const [resuming, setResuming] = useState(false)
   const [resendEmail, setResendEmail] = useState('')
   const [resendStatus, setResendStatus] = useState<'idle' | 'loading' | 'sent'>('idle')
   const [goalState, setGoalState] = useState<GoalState | null>(null)
@@ -59,7 +59,7 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
-    if (!token) { setAuthorized(false); return }
+    if (!token) return
     fetch('/api/verify-token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -81,10 +81,14 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
       if (dbData.messages && dbData.messages.length > 0) {
         setMessages(dbData.messages)
         setStarted(true)
-        setResuming(true)
+        // Returning student: stream Gojo's welcome-back turn. streamResponse
+        // appends via functional updates, so the hydrated messages above are
+        // already in `prev` by the time the stream writes.
+        setLoading(true)
+        streamResponse({ action: 'resume' }).then(() => setLoading(false))
       }
     })
-  }, [token, lesson.number])
+  }, [token, lesson.number]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -96,13 +100,6 @@ export default function LessonPage({ lesson }: { lesson: LessonConfig }) {
     ta.style.height = 'auto'
     ta.style.height = Math.min(ta.scrollHeight, 120) + 'px'
   }, [input])
-
-  useEffect(() => {
-    if (!resuming || messages.length === 0) return
-    setResuming(false)
-    setLoading(true)
-    streamResponse({ action: 'resume' }).then(() => setLoading(false))
-  }, [resuming]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function startLesson() {
     setStarted(true)
