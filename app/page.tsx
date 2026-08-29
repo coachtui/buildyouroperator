@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import ThemeToggle from './components/ThemeToggle'
 import DemoChat from './components/DemoChat'
+import { track } from './components/Track'
 
 const LESSONS = [
   { number: '01', title: 'What AI Actually Is', desc: 'Not magic, not a search engine. One conversation that replaces your mental model with a working one.' },
@@ -37,6 +38,7 @@ export default function Home() {
         setStatus('success')
         setMessage(data.message)
         setEmail('')
+        track('signup')
       } else {
         setStatus('error')
         setMessage(data.error || 'Something went wrong.')

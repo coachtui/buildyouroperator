@@ -73,3 +73,22 @@ create policy "deny_anon_users" on users for all using (false);
 create policy "deny_anon_sessions" on lesson_sessions for all using (false);
 create policy "deny_anon_chat_usage" on chat_usage for all using (false);
 create policy "deny_anon_lesson_analyses" on lesson_analyses for all using (false);
+
+-- First-party page-view + funnel events — written by /api/track (service role only)
+create table if not exists page_views (
+  id bigint generated always as identity primary key,
+  event text not null default 'pageview' check (char_length(event) <= 40),
+  path text not null check (char_length(path) <= 200),
+  referrer text check (char_length(referrer) <= 500),
+  utm_source text check (char_length(utm_source) <= 100),
+  utm_medium text check (char_length(utm_medium) <= 100),
+  utm_campaign text check (char_length(utm_campaign) <= 100),
+  visitor_id text check (char_length(visitor_id) <= 64),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists page_views_created_at_idx on page_views (created_at);
+create index if not exists page_views_visitor_id_idx on page_views (visitor_id);
+
+alter table page_views enable row level security;
+create policy "deny_anon_page_views" on page_views for all using (false);
