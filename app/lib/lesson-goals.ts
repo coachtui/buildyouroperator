@@ -40,7 +40,7 @@ export const LESSON_GOALS: Record<string, LessonGoal[]> = {
     {
       id: 3,
       label: 'Rewrote one of your own',
-      criterion: `The student rewrites one of their own real, bad instructions into a good one — and sees the difference themselves.`,
+      criterion: `The student rewrites one of their own real, bad AI instructions into a good one, and the full improved instruction itself appears in their message — ready to paste into an AI tool. Talking about what a better instruction would include, or giving an example of good direction from their own trade, is not the rewrite.`,
     },
     {
       id: 4,
@@ -69,6 +69,11 @@ export const LESSON_GOALS: Record<string, LessonGoal[]> = {
       label: 'Know how to access it',
       criterion: `They know how to access it and what the free vs paid difference is for their chosen tool.`,
     },
+    {
+      id: 5,
+      label: 'Ran a real prompt in it',
+      criterion: `They open their chosen tool — right now, on their phone or in another tab — run a real prompt in it (the one they wrote in Lesson 2 is ideal), and come back and report what they got.`,
+    },
   ],
   '4': [
     {
@@ -90,6 +95,11 @@ export const LESSON_GOALS: Record<string, LessonGoal[]> = {
       id: 4,
       label: 'Best prompts come from your situation',
       criterion: `They understand that the best prompts come from their specific situation, not generic templates.`,
+    },
+    {
+      id: 5,
+      label: 'Know what not to paste',
+      criterion: `The student says, in their own words, what they will leave out or swap for placeholders when using real work information with AI — client names, personal details, anything confidential they wouldn't post publicly.`,
     },
   ],
   '5': [
@@ -115,6 +125,11 @@ export const LESSON_GOALS: Record<string, LessonGoal[]> = {
     },
     {
       id: 5,
+      label: 'Checked it before trusting it',
+      criterion: `Looking at the real output, the student points at one specific thing that was wrong, weak, or not in their voice — and fixes the instruction or the output. "It was perfect" with nothing specific named does not meet this goal.`,
+    },
+    {
+      id: 6,
       label: 'Know you can reuse it',
       criterion: `They leave knowing this is reusable — they can do this again next time in minutes.`,
     },
@@ -137,6 +152,11 @@ export const LESSON_GOALS: Record<string, LessonGoal[]> = {
     },
     {
       id: 4,
+      label: 'AI can be confidently wrong',
+      criterion: `The student explains, in their own words, that AI sometimes makes things up with complete confidence — and names what they will always check by hand (names, numbers, dates, factual claims) before AI-assisted work leaves their hands.`,
+    },
+    {
+      id: 5,
       label: 'Left feeling capable',
       criterion: `They leave feeling capable — not overwhelmed — and curious about what comes next.`,
     },
